@@ -176,6 +176,12 @@ final class MeetingMonitor {
                 Task { @MainActor [weak self] in
                     self?.lastAutomationError = "\(name): \(error.localizedDescription)"
                 }
+            },
+            // Otherwise one transient failure stays on screen until the app is relaunched.
+            onSuccess: { [weak self] in
+                Task { @MainActor [weak self] in
+                    self?.lastAutomationError = nil
+                }
             }
         )
         Task {

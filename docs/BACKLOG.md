@@ -58,16 +58,20 @@ one real call:
 /usr/bin/log stream --level debug --predicate 'subsystem == "me.mazetti.meetingfocus"'
 ```
 
-### 5. Re-grant Accessibility to the current bundle
-The bundle identifier changed to `me.mazetti.meetingfocus`, and TCC keys on the code signature, so
-the earlier grant no longer applies. `make run` installs to `/Applications`, which is the path
-worth granting — a build run from `.build-xcode` loses its grant on the next rebuild.
+**Prerequisite, or the shortcut half cannot fire:** `startShortcutName` and `endShortcutName` are
+both empty in `UserDefaults`, so `ShortcutsAutomationHandler` logs "no shortcut configured,
+skipping" and returns. Pick a shortcut in Settings → Automation first — `Fokus festlegen` exists on
+the development machine. Turning on Settings → Diagnostics → Debug mode also makes each detection
+visible in the menu while the call runs.
+
+Accessibility is granted: `me.mazetti.meetingfocus` carries `auth_value = 2` for
+`kTCCServiceAccessibility`, so nothing is blocked on permission.
 
 ---
 
 ## P1 — Known unknowns that size the roadmap
 
-### 6. Settle whether muting releases the microphone stream
+### 5. Settle whether muting releases the microphone stream
 **This decides how much per-app work the product needs.** If mute releases the input stream, every
 application we want to support properly needs its own Accessibility detector; if it does not, the
 audio tier covers Zoom, Slack, Meet and Discord correctly with no per-app work and per-app
@@ -79,18 +83,27 @@ this is not a blocker — but it is the highest-leverage unknown in the project.
 Strong prior that it does **not** release the stream: both Teams and Zoom ship a "your mic is muted,
 we can hear you talking" prompt, which is only possible while capturing.
 
-Test: in a real call, mute for ~15 seconds while watching AX in-call state against
-`kAudioProcessPropertyIsRunningInput`. The correlator used for this lived in a scratch directory and
-is **not in the repo** — worth rebuilding as an `axprobe` subcommand so it is not lost again.
+The correlator now exists as `axprobe correlate` (rebuilt 2026-08-25; the original lived in a
+scratch directory and was lost). It samples both tiers once a second, prints only transitions, and
+refuses to draw a conclusion from a run that never saw a call. What remains is running it:
 
-### 7. Verify or remove the `joining` marker ids
+```sh
+make axprobe && ./.build/axprobe correlate com.microsoft.teams2 600
+```
+
+Join a real call, mute for ~15 seconds, unmute, leave. The answer is whether `input` ever reads
+`idle` while `ax` reads `in-call`. Verified so far only against an idle Teams and against
+CoreAudio directly (`corespeechd` reads `IsRunningInput=1`, so the audio half is live); the
+in-call half is unmeasured because it needs a call.
+
+### 6. Verify or remove the `joining` marker ids
 `Resources/teams-markers.json` carries `prejoin-join-button` / `prejoin-join-btn` marked
 `UNVERIFIED` — they are inferred, never observed. A 26-second lobby *was* measured, so the state is
 real; the ids are guesses. Capture the lobby with `axprobe ids com.microsoft.teams2` while sitting
 in a pre-join screen, then either fix them or delete them. Shipping a guess that silently never
 matches is worse than shipping no `joining` state.
 
-### 8. Confirm whether Graph's `InAMeeting` is calendar-derived
+### 7. Confirm whether Graph's `InAMeeting` is calendar-derived
 Blocks the provider tier (M2). If the activity is partly derived from calendar rather than actual
 call state, it will report a meeting the user never joined — which would make it unusable as
 anything but weak corroboration.
@@ -99,29 +112,12 @@ anything but weak corroboration.
 
 ## P2 — Requested features not yet built
 
-### 9. Localization (en + de)
-Every UI string is currently an English literal. The project is already prepared: `knownRegions:
-[en, de]`, `CFBundleLocalizations`, and both `SWIFT_EMIT_LOC_STRINGS` and
-`STRING_CATALOG_GENERATE_SYMBOLS` off with the reasoning recorded in `project.yml`.
-
-Remaining work, adapting pensieve's design:
-- `Localizable.xcstrings` catalogue, hand-authored.
-- `Tools/xcstrings` — the only thing that writes the catalogue: `add`/`set`/`remove`/`rename`/
-  `add-language`/`audit`/`fmt`. Verbs rather than hand-aimed edits into JSON, refusing the two
-  things a text edit does silently (dropping a duplicate key, leaving a declared language empty).
-- Coverage and integrity tests: every rendered literal has a key and every key is rendered, so a
-  new string cannot ship untranslated.
-- No language named in the tool — `project.yml`'s `knownRegions` is the authority.
-
-Worth noting the irony to keep straight: *detection* must never match localized strings, while the
-*app's own UI* should be fully localized. These are opposite rules in the same codebase.
-
-### 10. App icon
+### 8. App icon
 There is no asset catalogue and no `ASSETCATALOG_COMPILER_APPICON_NAME`, so the app ships with the
 generic placeholder icon in Finder, Login Items and the update dialog. The menu bar itself uses an
 SF Symbol and is fine.
 
-### 11. Bundled Focus shortcut, if a one-click path is wanted
+### 9. Bundled Focus shortcut, if a one-click path is wanted
 Currently documented as manual setup, deliberately: macOS treats shortcut files from unidentified
 sources as untrusted, so an import step is not reliably one click. If revisited, an iCloud shortcut
 share link is trusted by construction and needs no bundled file.
@@ -130,7 +126,7 @@ share link is trusted by construction and needs no bundled file.
 
 ## P3 — Roadmap
 
-### 12. Provider integrations (M2)
+### 10. Provider integrations (M2)
 One provider end to end, plus Keychain storage and an OAuth flow. Transports researched:
 
 | Provider | Signal | Transport for a desktop app |
@@ -144,13 +140,13 @@ Remote evidence is `corroborating` and describes the *user*, not this Mac, so "m
 phone count" becomes a setting. A corporate tenant can refuse the app registration outright, which
 is why this can never be the foundation.
 
-### 13. Native Zoom and Slack detectors (M3)
+### 11. Native Zoom and Slack detectors (M3)
 Slack is Electron/Chromium, so the `AXDOMIdentifier` technique should transfer directly. Zoom is
 native AppKit and needs its own marker study — it may expose no stable identifiers at all, leaving
 only localized titles. Neither is installed on the development machine, so both statements are
 reasoning rather than findings.
 
-### 14. Browser tier for naming meetings (M3)
+### 12. Browser tier for naming meetings (M3)
 Tabs are enumerable as `AXTabButton` with titles (verified on Safari), and web areas expose
 `AXURL`, so `meet.google.com` is identifiable. Audio already covers the *state*; this only adds the
 *name*. Where several capturing tabs are open, drop the identity and keep the state — ambiguity
@@ -159,7 +155,7 @@ must not guess.
 Do **not** build tab-level state tracking: we need a boolean plus an optional title, not per-tab
 precision.
 
-### 15. UI tests
+### 13. UI tests
 No UI test target. Pensieve's pattern exports and restores the app's `UserDefaults` domain around
 the suite so a test run cannot shift real state — worth copying if this app ever writes state worth
 protecting.
@@ -168,34 +164,29 @@ protecting.
 
 ## P4 — Housekeeping
 
-### 16. Remove the dead `showMenuBarIcon` setting
-Registered in `AppSettings.Key` and in the defaults dictionary, but there is no property, no UI and
-no reader. Either implement hiding the menu bar icon (it was a stated goal — "otherwise only as a
-menubar item") or delete the key.
-
-### 17. `lastAutomationError` is never cleared
-Set on failure and rendered in the menu, but nothing resets it, so a single transient failure shows
-until relaunch. Clear it on the next successful automation run.
-
-### 18. Decide on a contributor licence agreement
+### 14. Decide on a contributor licence agreement
 AGPL-3.0 conflicts with Mac App Store terms, so the licence closes that door while it applies. That
 stays reversible **only** while one party holds copyright to all the code. Accepting an outside
 patch without a CLA ends that permanently. Decide before the first external pull request, not after.
 Recorded as C6 in `constraints.md`.
 
-### 19. Review the open Dependabot PR
-`#1 ci: bump the github-actions group with 2 updates`. The three-day cooldown is configured, so
-these are not same-day releases.
-
-### 20. Sparkle is outside Dependabot's view
+### 15. Sparkle is outside Dependabot's view
 Declared in `project.yml` for the Xcode target, which Dependabot's `swift` ecosystem does not read;
 bumped by hand. Pulling an updater framework into the dependency-free core to satisfy a scanner
 would be worse. Recorded as C7 — check Sparkle's releases when touching the updater.
 
-### 21. CHANGELOG
-No changelog. Release notes are generated from `.github/templates/release.md`, which may be
-sufficient — decide rather than drift.
+### 16. CodeQL: keep the default setup, or commit an explicit workflow
+Default setup **works**. The `Analyze (swift)` job completed green in 25m11s and recorded one
+analysis over 27 rules with 0 results and 0 alerts. (An earlier note here called the run stalled —
+that was reading the run list while it was still going.) Current configuration:
 
-### 22. CodeQL
-GitHub auto-enabled default CodeQL setup on the public repo. Confirm it runs green and decide
-whether to keep the default configuration or commit an explicit workflow.
+    languages: [swift]   query_suite: default   threat_model: remote   schedule: weekly
+
+Recommendation: keep it. It needs no maintenance, the 25 minutes is not on any critical path, and an
+explicit workflow would add a file to maintain, a CodeQL action version for Dependabot to bump, and
+a duplicated build for no extra signal at this size.
+
+One thing worth revisiting inside the default setup, which is configurable without a workflow file:
+`threat_model: remote` is the wrong model for a desktop app that opens no listening socket. The
+local threat model is the one that fits what this app actually does — read other processes' UI and
+run a user-named shortcut.

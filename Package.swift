@@ -15,5 +15,8 @@ let package = Package(
   targets: [
     .target(name: "MeetingFocusCore"),
     .testTarget(name: "MeetingFocusCoreTests", dependencies: ["MeetingFocusCore"]),
+    // Depends on nothing: it reads the app's Swift sources and its String Catalogue from disk as
+    // text, so it needs no test host and cannot be broken by a change to what the app links.
+    .testTarget(name: "LocalizationTests"),
   ]
 )

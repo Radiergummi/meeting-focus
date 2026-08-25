@@ -36,6 +36,7 @@ final class AppSettings {
         startShortcutName = defaults.string(forKey: Key.startShortcutName) ?? ""
         endShortcutName = defaults.string(forKey: Key.endShortcutName) ?? ""
         endCooldownSeconds = defaults.double(forKey: Key.endCooldownSeconds)
+        showMenuBarIcon = defaults.bool(forKey: Key.showMenuBarIcon)
         debugMode = defaults.bool(forKey: Key.debugMode)
     }
 
@@ -56,6 +57,13 @@ final class AppSettings {
     }
     var endCooldownSeconds: Double = 45 {
         didSet { defaults.set(endCooldownSeconds, forKey: Key.endCooldownSeconds) }
+    }
+    /// Hiding the icon leaves an `LSUIElement` app with no visible UI at all, so
+    /// `AppDelegate.applicationShouldHandleReopen` sets this back to `true` — launching the app
+    /// again from Finder is the documented way back. Without that hatch the only route to Settings
+    /// would be Activity Monitor.
+    var showMenuBarIcon: Bool = true {
+        didSet { defaults.set(showMenuBarIcon, forKey: Key.showMenuBarIcon) }
     }
     var debugMode: Bool = false {
         didSet { defaults.set(debugMode, forKey: Key.debugMode) }

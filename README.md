@@ -104,7 +104,56 @@ To re-derive them, enable Debug mode in Settings and watch:
 A warning is logged when a window looks like a meeting but no markers match — the signature of a
 rename. Meeting titles are redacted from logs by design.
 
+## Localization
+
+The app ships English and German. `Sources/MeetingFocusApp/Localizable.xcstrings` is hand-authored,
+and `Tools/xcstrings` is the only thing that should ever write it:
+
+```sh
+make xcstrings
+./.build/xcstrings audit                      # per-language counts, duplicates, canonical form
+./.build/xcstrings add --catalog app --key "New string" --draft "de=Neuer Text"
+./.build/xcstrings set --catalog app --key "New string" --translation "de=Neuer Text"
+```
+
+`--draft` writes `needs_review`; `--translation` writes `translated`. Use `--draft` for wording
+nobody has checked yet.
+
+Why a tool rather than editing the JSON: a duplicate key is legal JSON, and `JSONSerialization`
+silently keeps the last one — so the losing copy can be edited forever and never render. The tool
+refuses to write a file that has one, rather than parsing and re-emitting it.
+
+`swift test` enforces the part that cannot be seen by eye. A String Catalogue key must match its
+Swift literal character-for-character or the German silently falls back to English, and with
+`SWIFT_EMIT_LOC_STRINGS: NO` nothing in the build checks that. The tests compare both directions —
+every rendered literal has a key, every key is rendered — and each one asserts its own inputs were
+non-empty, so a broken scan fails instead of passing vacuously.
+
+Note the rule that runs opposite to itself in this codebase: the app's own UI should be fully
+localized, while *detection* must never match localized strings. That is why the Teams detector keys
+on `AXDOMIdentifier` rather than on window titles.
+
 ## Releasing
+
+First, describe the release. Move the `## [Unreleased]` entries in
+[`CHANGELOG.md`](CHANGELOG.md) under a `## [x.y.z] — <date>` heading matching the tag you are about
+to push, and bump `MARKETING_VERSION` in `project.yml` to match. This is not optional for a CI
+release: `release.yml` extracts that section into the release notes and **fails before anything is
+signed** if the version has no entry.
+
+Then check the three agree, before the tag exists:
+
+```sh
+./Scripts/preflight.sh 0.1.1
+```
+
+It verifies `MARKETING_VERSION`, the CHANGELOG section, that the tag is unused, and that the working
+tree is clean — `git tag` tags `HEAD`, so uncommitted work is silently not in the release. The
+workflow checks the first two independently; preflight only saves you the recovery, which is
+`git tag -d v0.1.1 && git push --delete origin v0.1.1`.
+
+`Scripts/release-notes.sh <version>` is the shared extraction both preflight and the workflow call,
+so there is one implementation of where a CHANGELOG section starts and stops.
 
 ```sh
 ./Scripts/release.sh                    # signed, notarized, stapled DMG + signed appcast
@@ -165,6 +214,9 @@ seeds from the published appcast so earlier versions keep their entries.
 - [`docs/constraints.md`](docs/constraints.md) — platform constraints and which of them are
   load-bearing
 - [`docs/BACKLOG.md`](docs/BACKLOG.md) — what is outstanding, and why each item matters
+- [`CHANGELOG.md`](CHANGELOG.md) — what changed in each release; the release workflow reads it
+- [`docs/superpowers/specs/`](docs/superpowers/specs) — design specs, including the localization
+  design and its rationale
 
 ## Trust: what this build is, and how to check it
 

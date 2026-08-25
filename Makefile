@@ -26,6 +26,10 @@ XCODEBUILD_FLAGS += -authenticationKeyPath $(ASC_KEY_PATH) \
 	-authenticationKeyIssuerID $(ASC_ISSUER_ID)
 endif
 
+# The declared languages, read from project.yml rather than restated here — the same rule the
+# xcstrings tool and the localization tests follow, so there is one authority for the list.
+LANGUAGES := $(shell awk '/knownRegions:/{f=1;next} f&&/^[[:space:]]*- /{print $$2;next} f{exit}' project.yml)
+
 PRODUCTS = ./.build-xcode/Build/Products/Debug
 APP = $(PRODUCTS)/MeetingFocus.app
 BINARY = $(APP)/Contents/MacOS/MeetingFocus
@@ -34,7 +38,18 @@ PBXPROJ = MeetingFocus.xcodeproj/project.pbxproj
 # The accessibility probe: a development tool, deliberately outside Sources/ because BUILD_SOURCES
 # globs that directory — a probe there would trigger a full app rebuild on every probe edit.
 AXPROBE = ./.build/axprobe
-AXPROBE_SOURCES := $(shell find Tools/axprobe -type f -name '*.swift')
+# BundleIdentifierResolver is compiled in rather than copied: CoreAudio reports Teams' helper
+# process, and correlate's whole job is comparing the two tiers' idea of *which* app is capturing.
+# A second copy of that normalisation would be free to drift from the one detection actually uses.
+AXPROBE_SOURCES := $(shell find Tools/axprobe -type f -name '*.swift') \
+	Sources/MeetingFocusApp/Detectors/BundleIdentifierResolver.swift
+
+# The String Catalogue editor. LOCALIZATION_RULES lives under Tests/ and is compiled into BOTH this
+# tool and the test target: reading project.yml's language lists and counting a catalogue's keys as
+# the file spells them are rules the two must agree on, and one file is cheaper than the drift.
+XCSTRINGS = ./.build/xcstrings
+LOCALIZATION_RULES = Tests/LocalizationTests/LocalizationRules.swift
+XCSTRINGS_SOURCES := $(shell find Tools/xcstrings -type f -name '*.swift') $(LOCALIZATION_RULES)
 
 # Accessibility permission is granted per path *and* code signature, so a build run from
 # .build-xcode needs its own grant and loses it on the next rebuild. Running the installed copy is
@@ -48,12 +63,18 @@ INSTALLED_APP = /Applications/MeetingFocus.app
 # `make build` notice a file-set change and regenerate the project, whose failure mode is a stale
 # .xcodeproj reporting "cannot find X in scope" and reading as a code error.
 SWIFT_SOURCES := $(shell find Sources Tests Tools -type f -name '*.swift')
-TEST_INPUTS := Package.swift $(shell find Sources/MeetingFocusCore Tests/MeetingFocusCoreTests ! -name '.*')
+# Sources/MeetingFocusApp is an input even though `swift test` never COMPILES it: the localization
+# tests read that tree and its .xcstrings to check that every rendered literal has a catalogue key and
+# vice versa. Without it here, adding a literal to a view leaves this record valid and `make test`
+# reports cached-green over a real failure. The cost is small for the same reason the trap is subtle —
+# app sources are not compiled by the suite, so an app-only edit re-runs the tests without rebuilding.
+TEST_INPUTS := Package.swift $(shell find Sources/MeetingFocusCore Tests ! -name '.*') \
+	$(shell find Sources/MeetingFocusApp ! -name '.*')
 # Resources/ is a signing and behaviour input: teams-markers.json is what detection matches on, so
 # an edit there must invalidate the build even though no Swift file changed.
 BUILD_SOURCES := $(shell find Sources/MeetingFocusApp Resources ! -name '.*')
 
-.PHONY: help all test lint generate build axprobe smoke install run release publish clean
+.PHONY: help all test lint generate build axprobe xcstrings smoke install run release publish clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) \
@@ -78,13 +99,20 @@ generate: $(PBXPROJ) ## Regenerate MeetingFocus.xcodeproj from project.yml
 
 build: $(BINARY) ## Build MeetingFocus.app
 
-axprobe: $(AXPROBE) ## Build the accessibility probe (dump / ids / watch)
+axprobe: $(AXPROBE) ## Build the accessibility probe (dump / ids / watch / correlate)
+
+xcstrings: $(XCSTRINGS) ## Build the String Catalogue editor (add/set/remove/rename/audit/fmt)
 
 smoke: .make/smoke ## Verify the built bundle is intact and starts monitoring
 
 $(AXPROBE): $(AXPROBE_SOURCES)
 	@mkdir -p $(dir $@)
 	@swiftc -O $(AXPROBE_SOURCES) -o $@
+	@echo "ok: $@"
+
+$(XCSTRINGS): $(XCSTRINGS_SOURCES)
+	@mkdir -p $(dir $@)
+	@swiftc -O $(XCSTRINGS_SOURCES) -o $@
 	@echo "ok: $@"
 
 .make/test: $(TEST_INPUTS) | .make
@@ -121,6 +149,12 @@ $(BINARY): $(BUILD_SOURCES) $(PBXPROJ)
 	done
 	@test -f "$(APP)/Contents/Resources/teams-markers.json" || { echo "missing teams-markers.json"; exit 1; }
 	@plutil -convert json -o /dev/null "$(APP)/Contents/Resources/teams-markers.json"
+	@for lang in $(LANGUAGES); do \
+		strings="$(APP)/Contents/Resources/$$lang.lproj/Localizable.strings"; \
+		test -f "$$strings" \
+			|| { echo "missing $$lang.lproj/Localizable.strings — the String Catalogue did not compile in"; exit 1; }; \
+		plutil -convert json -o /dev/null "$$strings" || exit 1; \
+	done
 	@codesign --verify --strict "$(APP)"
 	@"$(BINARY)" & pid=$$!; \
 	sleep 6; \
@@ -132,7 +166,7 @@ $(BINARY): $(BUILD_SOURCES) $(PBXPROJ)
 	if printf '%s' "$$logged" | grep -q "teams-markers.json missing or unreadable"; then \
 		echo "the app fell back to built-in markers — the bundled catalogue did not load"; exit 1; \
 	fi
-	@echo "ok: bundle intact, markers loaded, monitoring starts"
+	@echo "ok: bundle intact, markers and $(words $(LANGUAGES)) language(s) loaded, monitoring starts"
 	@touch $@
 
 # Order-only (the `|`): writing a record inside .make bumps the directory's own mtime, and as a

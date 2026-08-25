@@ -17,12 +17,23 @@ struct ShortcutsAutomationHandler: AutomationHandler {
         case toolMissing
         case exited(code: Int32, message: String)
 
+        /// `String(localized:)` rather than a plain literal: these are rendered in the menu bar, and a
+        /// bare `String` is never looked up in the String Catalogue. A German user seeing "Shortcut
+        /// failed (exit 1)" in an otherwise German menu is the half-localized outcome the coverage tests
+        /// exist to prevent.
+        ///
+        /// `message` is the shortcuts tool's own stderr and stays verbatim — it is not ours to translate.
         var errorDescription: String? {
             switch self {
-            case .notConfigured: "No shortcut name is configured."
-            case .toolMissing: "The shortcuts command line tool is unavailable."
+            case .notConfigured:
+                return String(localized: "No shortcut name is configured.")
+            case .toolMissing:
+                return String(localized: "The shortcuts command line tool is unavailable.")
             case .exited(let code, let message):
-                "Shortcut failed (exit \(code))" + (message.isEmpty ? "" : ": \(message)")
+                // Widened to Int so the catalogue key carries %lld: SwiftUI derives the specifier from
+                // the interpolated type, and Int32 would ask for a key spelled %d instead.
+                let summary = String(localized: "Shortcut failed (exit \(Int(code)))")
+                return message.isEmpty ? summary : "\(summary): \(message)"
             }
         }
     }
@@ -32,6 +43,9 @@ struct ShortcutsAutomationHandler: AutomationHandler {
     var startShortcutName: String?
     var endShortcutName: String?
     var onFailure: (@Sendable (String, Error) -> Void)?
+    /// Called after a shortcut actually ran, so a stale failure message can be cleared. Not
+    /// called when no shortcut is configured — that is neither success nor failure.
+    var onSuccess: (@Sendable () -> Void)?
 
     func meetingStarted(_ meeting: Meeting) async {
         await run(named: startShortcutName, reason: "meeting started")
@@ -49,6 +63,7 @@ struct ShortcutsAutomationHandler: AutomationHandler {
         do {
             try await Self.run(shortcutNamed: name)
             Log.automation.info("\(reason): ran shortcut")
+            onSuccess?()
         } catch {
             Log.automation.error("\(reason): shortcut failed: \(error.localizedDescription)")
             onFailure?(name, error)

@@ -17,7 +17,10 @@ struct MenuBarLabel: View {
         }
     }
 
-    private var label: String {
+    /// `LocalizedStringKey`, not `String`: `accessibilityLabel` resolves a `String` verbatim, so as
+    /// plain text this would have stayed English for every VoiceOver user. Each case below therefore
+    /// needs a catalogue key.
+    private var label: LocalizedStringKey {
         switch state {
         case .inMeeting: "In a meeting"
         case .joining: "Joining a meeting"
@@ -26,98 +29,98 @@ struct MenuBarLabel: View {
     }
 }
 
+/// Menu items, not a laid-out view. `.menuBarExtraStyle(.menu)` maps each child of this body onto an
+/// `NSMenuItem`, which is what gives the rows a hover highlight, the separators their hairline, and
+/// the buttons below their real key equivalents — ⌘, does nothing at all in a `.window`-style menu,
+/// where the content is just SwiftUI in a panel. The cost is that nothing here may be a container:
+/// a `VStack` would arrive as one item holding a stack, and layout modifiers are ignored. Content
+/// that needs more than a line of text belongs in Settings.
 struct MenuBarView: View {
     @Bindable var monitor: MeetingMonitor
     @Bindable var settings: AppSettings
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            statusRow
-
-            if !monitor.accessibilityTrusted {
-                Divider()
-                permissionWarning
-            }
-
-            if let meeting = monitor.activeMeetings.first {
-                Divider()
-                Text(meeting.title ?? meeting.applicationName)
-                    .font(.system(size: 12, weight: .medium))
-                Text("\(meeting.applicationName) · started \(Self.time(meeting.startedAt))")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                if monitor.activeMeetings.count > 1 {
-                    Text("+\(monitor.activeMeetings.count - 1) more")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Divider()
-            row("Monitoring", monitor.isMonitoring)
-            row("Automation", settings.isAutomationConfigured)
-
-            if let error = monitor.lastAutomationError {
-                Text(error)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.red)
-                    .lineLimit(2)
-            }
-
-            if settings.debugMode, !monitor.recentEvents.isEmpty {
-                Divider()
-                ForEach(monitor.recentEvents.prefix(5), id: \.self) { line in
-                    Text(line).font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Divider()
-            Button("Check for Updates…") { Updater.shared.checkForUpdates() }
-            Button("Settings…") { openSettings() }
-                .keyboardShortcut(",")
-            Button("Quit MeetingFocus") { NSApplication.shared.terminate(nil) }
-                .keyboardShortcut("q")
-        }
-        .padding(12)
-        .frame(width: 260)
+        Label(statusText, systemImage: statusSymbol)
+        activeMeeting
+        Divider()
+        state
+        debugEvents
+        Divider()
+        actions
     }
 
-    private var statusRow: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-            Text(statusText).font(.system(size: 13, weight: .semibold))
+    @ViewBuilder private var activeMeeting: some View {
+        if let meeting = monitor.activeMeetings.first {
+            Divider()
+            // A title is whatever the meeting is called, so it is shown verbatim rather than as a
+            // catalogue key.
+            Text(meeting.title ?? meeting.applicationName)
+            Text("\(meeting.applicationName) · started \(Self.time(meeting.startedAt))")
+            if monitor.activeMeetings.count > 1 {
+                Text("+\(monitor.activeMeetings.count - 1) more")
+            }
         }
     }
 
-    private var permissionWarning: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Accessibility permission required")
-                .font(.system(size: 12, weight: .medium))
-            Text("""
-                MeetingFocus reads Teams' own window contents to tell whether you are in a meeting. \
-                Without this it falls back to microphone activity only.
-                """)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-            Button("Open Privacy & Security…") {
+    /// Switches rather than read-outs. A row carrying a tick nobody can click reads as a broken
+    /// checkbox, and both of these states have something behind them the user is allowed to change:
+    /// `Toggle` renders as a native checkmark item and actually means it.
+    @ViewBuilder private var state: some View {
+        Toggle("Monitoring", isOn: Binding(
+            get: { monitor.isMonitoring },
+            set: { enabled in Task { enabled ? await monitor.start() : await monitor.stop() } }
+        ))
+        Toggle("Automation", isOn: $settings.automationEnabled)
+        // Automation can be on and still do nothing, which the old tick reported as a cross and left
+        // the user to work out. Naming the missing piece is more use than reporting it.
+        if settings.automationEnabled, !settings.isAutomationConfigured {
+            Button("Choose Shortcuts…") { showSettings() }
+        }
+        if let error = monitor.lastAutomationError {
+            Text(error)
+        }
+        if !monitor.accessibilityTrusted {
+            // The paragraph explaining why the permission matters cannot live in a menu item; it is
+            // in Settings, beside the detector this permission feeds.
+            Button {
                 AccessibilityAuthorization.openSystemSettings()
+            } label: {
+                Label("Grant Accessibility permission…", systemImage: "exclamationmark.triangle")
             }
         }
     }
 
-    private var statusColor: Color {
-        switch monitor.aggregateState {
-        case .inMeeting: .green
-        case .joining: .orange
-        case .idle: .secondary
+    @ViewBuilder private var debugEvents: some View {
+        if settings.debugMode, !monitor.recentEvents.isEmpty {
+            // A submenu, so a stream of log lines cannot push the actions below off the bottom of
+            // the screen.
+            Menu("Recent detections") {
+                ForEach(monitor.recentEvents.prefix(10), id: \.self) { Text($0) }
+            }
         }
     }
 
-    private var statusText: String {
+    @ViewBuilder private var actions: some View {
+        Button("Check for Updates…") { Updater.shared.checkForUpdates() }
+        Button("Settings…") { showSettings() }
+            .keyboardShortcut(",")
+        Button("Quit MeetingFocus") { NSApplication.shared.terminate(nil) }
+            .keyboardShortcut("q")
+    }
+
+    /// `openSettings()` on its own opens the window behind whatever the user was looking at, and
+    /// leaves an already-open one buried: `LSUIElement` puts the app under the accessory activation
+    /// policy, where opening a window never activates the app. Activating has to follow the window
+    /// existing, hence the hop to the next run-loop pass.
+    private func showSettings() {
+        openSettings()
+        DispatchQueue.main.async { NSApp.activate(ignoringOtherApps: true) }
+    }
+
+    /// `LocalizedStringKey` for the same reason as `MenuBarLabel.label`: `Text(String)` renders
+    /// verbatim, and this is the most prominent string in the menu.
+    private var statusText: LocalizedStringKey {
         switch monitor.aggregateState {
         case .inMeeting: "In a meeting"
         case .joining: "Joining…"
@@ -125,13 +128,13 @@ struct MenuBarView: View {
         }
     }
 
-    private func row(_ title: String, _ enabled: Bool) -> some View {
-        HStack {
-            Text(title).font(.system(size: 12))
-            Spacer()
-            Image(systemName: enabled ? "checkmark" : "xmark")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(enabled ? Color.green : Color.secondary)
+    /// Shape, not colour: a menu item's image is drawn as a template, so the green dot the old
+    /// popover used would arrive as a grey one. Filled, dashed and hollow read apart in monochrome.
+    private var statusSymbol: String {
+        switch monitor.aggregateState {
+        case .inMeeting: "circle.fill"
+        case .joining: "circle.dashed"
+        case .idle: "circle"
         }
     }
 

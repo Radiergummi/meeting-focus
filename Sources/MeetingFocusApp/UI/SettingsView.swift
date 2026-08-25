@@ -8,6 +8,69 @@ struct SettingsView: View {
     @State private var launchAtLoginError: String?
 
     var body: some View {
+        TabView {
+            Tab("General", systemImage: "gearshape") { general }
+            Tab("Detection", systemImage: "eye") { detection }
+            Tab("Automation", systemImage: "wand.and.rays") { automation }
+            Tab("About", systemImage: "info.circle") { about }
+        }
+        // The window keeps one width across the tabs and takes its height from whichever is showing,
+        // which is the convention every tabbed settings window on the system follows. Loading the
+        // shortcut names here rather than on the Automation tab fetches them once per window instead
+        // of on every visit to that tab.
+        .task {
+            shortcutNames = await ShortcutsAutomationHandler.availableShortcutNames()
+            launchAtLogin = LaunchAtLogin.isEnabled
+        }
+    }
+
+    private var general: some View {
+        Form {
+            // No header: a "General" heading inside the General tab says nothing the tab has not.
+            Section {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { launchAtLogin },
+                    set: { newValue in
+                        do {
+                            try LaunchAtLogin.setEnabled(newValue)
+                            launchAtLogin = LaunchAtLogin.isEnabled
+                            launchAtLoginError = nil
+                        } catch {
+                            launchAtLoginError = error.localizedDescription
+                        }
+                    }
+                ))
+                if LaunchAtLogin.needsApproval {
+                    HStack {
+                        Text("Waiting for approval in Login Items.")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Open…") { LaunchAtLogin.openLoginItemsSettings() }
+                    }
+                }
+                if let launchAtLoginError {
+                    Text(launchAtLoginError).font(.caption).foregroundStyle(.red)
+                }
+
+                Toggle("Show the menu bar icon", isOn: $settings.showMenuBarIcon)
+                // Says the way back explicitly. Hiding the icon removes the app's only visible
+                // surface, and a user who cannot find their way back reasonably concludes it broke.
+                Text("""
+                    Detection and automation keep running with the icon hidden. To bring it back, \
+                    open MeetingFocus again from your Applications folder.
+                    """)
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section("Diagnostics") {
+                Toggle("Debug mode (show recent detections in the menu)", isOn: $settings.debugMode)
+            }
+        }
+        .formStyle(.grouped)
+        .frame(width: 460)
+    }
+
+    private var detection: some View {
         Form {
             Section("Detectors") {
                 Toggle("Microsoft Teams (Accessibility)", isOn: $settings.teamsDetectorEnabled)
@@ -33,7 +96,13 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+        .formStyle(.grouped)
+        .frame(width: 460)
+    }
 
+    private var automation: some View {
+        Form {
             Section("Automation") {
                 Toggle("Run Shortcuts on meeting changes", isOn: $settings.automationEnabled)
                 shortcutPicker("When a meeting starts", selection: $settings.startShortcutName)
@@ -61,33 +130,13 @@ struct SettingsView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
+        }
+        .formStyle(.grouped)
+        .frame(width: 460)
+    }
 
-            Section("General") {
-                Toggle("Launch at login", isOn: Binding(
-                    get: { launchAtLogin },
-                    set: { newValue in
-                        do {
-                            try LaunchAtLogin.setEnabled(newValue)
-                            launchAtLogin = LaunchAtLogin.isEnabled
-                            launchAtLoginError = nil
-                        } catch {
-                            launchAtLoginError = error.localizedDescription
-                        }
-                    }
-                ))
-                if LaunchAtLogin.needsApproval {
-                    HStack {
-                        Text("Waiting for approval in Login Items.")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Open…") { LaunchAtLogin.openLoginItemsSettings() }
-                    }
-                }
-                if let launchAtLoginError {
-                    Text(launchAtLoginError).font(.caption).foregroundStyle(.red)
-                }
-            }
-
+    private var about: some View {
+        Form {
             Section("This build") {
                 LabeledContent("Version", value: BuildInfo.summary)
                 if BuildInfo.isOfficialBuild, let url = BuildInfo.buildRunURL {
@@ -115,17 +164,9 @@ struct SettingsView: View {
                     Link("GitHub", destination: BuildInfo.repositoryURL)
                 }
             }
-
-            Section("Diagnostics") {
-                Toggle("Debug mode (show recent detections in the menu)", isOn: $settings.debugMode)
-            }
         }
         .formStyle(.grouped)
         .frame(width: 460)
-        .task {
-            shortcutNames = await ShortcutsAutomationHandler.availableShortcutNames()
-            launchAtLogin = LaunchAtLogin.isEnabled
-        }
     }
 
     /// Offers real shortcut names where possible; typing is still allowed, since Shortcuts may be

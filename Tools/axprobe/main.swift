@@ -8,9 +8,10 @@ import Foundation
 // vendor element ids change: when detection stops working, dumping the live tree is how the new
 // ids get found, and guessing is how weeks get wasted.
 //
-//   axprobe dump  <bundle-id> [maxDepth]   print the accessibility tree
-//   axprobe ids   <bundle-id>              print every element exposing an AXDOMIdentifier
-//   axprobe watch <bundle-id> [markers…]   poll and report when the marker set changes
+//   axprobe dump      <bundle-id> [maxDepth]  print the accessibility tree
+//   axprobe ids       <bundle-id>             print every element exposing an AXDOMIdentifier
+//   axprobe watch     <bundle-id> [markers…]  poll and report when the marker set changes
+//   axprobe correlate <bundle-id> [seconds]   sample AX in-call state against microphone capture
 
 func string(_ element: AXUIElement, _ attribute: String) -> String? {
     var value: CFTypeRef?
@@ -27,9 +28,11 @@ func children(_ element: AXUIElement) -> [AXUIElement] {
     return (value as? [AXUIElement]) ?? []
 }
 
-func windows(of bundleID: String) -> (pid: pid_t, windows: [AXUIElement])? {
+/// `quiet` suppresses the diagnostics for callers that poll: correlate samples once a second for
+/// minutes at a time, and a per-sample complaint would bury the measurement it is taking.
+func windows(of bundleID: String, quiet: Bool = false) -> (pid: pid_t, windows: [AXUIElement])? {
     guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else {
-        FileHandle.standardError.write(Data("\(bundleID) is not running\n".utf8))
+        if !quiet { FileHandle.standardError.write(Data("\(bundleID) is not running\n".utf8)) }
         return nil
     }
     let element = AXUIElementCreateApplication(app.processIdentifier)
@@ -37,8 +40,10 @@ func windows(of bundleID: String) -> (pid: pid_t, windows: [AXUIElement])? {
     guard AXUIElementCopyAttributeValue(element, kAXWindowsAttribute as CFString, &value) == .success,
           let list = value as? [AXUIElement]
     else {
-        FileHandle.standardError.write(
-            Data("could not read windows — is Accessibility permission granted?\n".utf8))
+        if !quiet {
+            FileHandle.standardError.write(
+                Data("could not read windows — is Accessibility permission granted?\n".utf8))
+        }
         return nil
     }
     return (app.processIdentifier, list)
@@ -135,14 +140,26 @@ case "watch":
         ? Set(arguments.dropFirst(2))
         : ["call-duration-custom", "hangup-button", "microphone-button", "video-button"]
     watch(bundleID: arguments[1], markers: markers)
+case "correlate":
+    guard arguments.count >= 2 else { print("usage: axprobe correlate <bundle-id> [seconds]"); exit(2) }
+    // The in-call marker set only, deliberately: correlate needs a trustworthy "is in a call"
+    // control, and the pre-join markers are still unverified.
+    correlate(
+        bundleID: arguments[1],
+        markers: ["call-duration-custom", "hangup-button", "microphone-button", "video-button"],
+        micMarker: "microphone-button",
+        seconds: arguments.count > 2 ? Int(arguments[2]) ?? 300 : 300
+    )
 default:
     print("""
         axprobe — accessibility diagnostics for MeetingFocus
 
-          axprobe dump  <bundle-id> [maxDepth]   print the accessibility tree
-          axprobe ids   <bundle-id>              list every AXDOMIdentifier exposed
-          axprobe watch <bundle-id> [markers…]   report when the marker set changes
+          axprobe dump      <bundle-id> [maxDepth]  print the accessibility tree
+          axprobe ids       <bundle-id>             list every AXDOMIdentifier exposed
+          axprobe watch     <bundle-id> [markers…]  report when the marker set changes
+          axprobe correlate <bundle-id> [seconds]   AX in-call state vs microphone capture
 
         Example: axprobe ids com.microsoft.teams2
+                 axprobe correlate com.microsoft.teams2 300
         """)
 }

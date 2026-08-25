@@ -20,6 +20,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { await monitor.start() }
     }
 
+    /// The way back from a hidden menu bar icon. An `LSUIElement` app with the icon hidden has no
+    /// Dock tile and no window, so opening it again from Finder — which lands here, because it is
+    /// already running — is the only gesture a user has left. Restoring the icon is what makes
+    /// hiding it a safe thing to offer at all.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !settings.showMenuBarIcon {
+            settings.showMenuBarIcon = true
+            Log.state.info("menu bar icon restored by reopen")
+        }
+        return false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         Task { await monitor.stop() }
     }
@@ -30,12 +42,14 @@ struct MeetingFocusApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        MenuBarExtra {
+        @Bindable var settings = delegate.settings
+
+        MenuBarExtra(isInserted: $settings.showMenuBarIcon) {
             MenuBarView(monitor: delegate.monitor, settings: delegate.settings)
         } label: {
             MenuBarLabel(state: delegate.monitor.aggregateState)
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
 
         Settings {
             SettingsView(settings: delegate.settings, monitor: delegate.monitor)
