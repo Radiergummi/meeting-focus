@@ -1,20 +1,5 @@
 import Foundation
 
-/// A Focus mode as the system names it: `ModeConfigurations.json`'s key, and the display name the
-/// user sees. Both go into the shortcut — the identifier is what Shortcuts acts on, the display
-/// string is what its summary reads.
-public struct FocusMode: Equatable, Sendable, Identifiable {
-    public let identifier: String
-    public let name: String
-
-    public var id: String { identifier }
-
-    public init(identifier: String, name: String) {
-        self.identifier = identifier
-        self.name = name
-    }
-}
-
 public enum FocusShortcutDirection: Sendable {
     case turnOn, turnOff
 }
@@ -25,7 +10,7 @@ private enum RecipeCodingKeys: String, CodingKey {
 }
 
 private enum ParameterKeyCodingKeys: String, CodingKey {
-    case enabled, focusModes, assertionType, modeIdentifier, modeDisplayName
+    case enabled, assertionType
 }
 
 /// The Set Focus action as data rather than source, for the same reason `teams-markers.json` is
@@ -34,33 +19,21 @@ private enum ParameterKeyCodingKeys: String, CodingKey {
 public struct FocusShortcutRecipe: Decodable, Sendable {
     public struct ParameterKeys: Decodable, Sendable {
         public var enabled: String = "Enabled"
-        public var focusModes: String = "FocusModes"
         public var assertionType: String = "AssertionType"
-        public var modeIdentifier: String = "Identifier"
-        public var modeDisplayName: String = "DisplayString"
 
         public init(
             enabled: String = "Enabled",
-            focusModes: String = "FocusModes",
-            assertionType: String = "AssertionType",
-            modeIdentifier: String = "Identifier",
-            modeDisplayName: String = "DisplayString"
+            assertionType: String = "AssertionType"
         ) {
             self.enabled = enabled
-            self.focusModes = focusModes
             self.assertionType = assertionType
-            self.modeIdentifier = modeIdentifier
-            self.modeDisplayName = modeDisplayName
         }
 
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: ParameterKeyCodingKeys.self)
             let defaults = ParameterKeys()
             enabled = try container.decodeIfPresent(String.self, forKey: .enabled) ?? defaults.enabled
-            focusModes = try container.decodeIfPresent(String.self, forKey: .focusModes) ?? defaults.focusModes
             assertionType = try container.decodeIfPresent(String.self, forKey: .assertionType) ?? defaults.assertionType
-            modeIdentifier = try container.decodeIfPresent(String.self, forKey: .modeIdentifier) ?? defaults.modeIdentifier
-            modeDisplayName = try container.decodeIfPresent(String.self, forKey: .modeDisplayName) ?? defaults.modeDisplayName
         }
     }
 
@@ -128,17 +101,16 @@ public struct FocusShortcutRecipe: Decodable, Sendable {
 public enum FocusShortcut {
     /// Serialises in binary because `shortcuts sign` rejects an XML plist outright, with the same
     /// error it gives for a wrong file extension.
+    ///
+    /// Deliberately omits the `FocusModes` parameter. There is no way to read the user's Focus modes
+    /// without Full Disk Access, so the action ships without one — which Shortcuts renders as a valid
+    /// action set to Do Not Disturb, with the Focus name tappable so the user can retarget it.
     public static func plistData(
         recipe: FocusShortcutRecipe,
-        focus: FocusMode,
         direction: FocusShortcutDirection
     ) throws -> Data {
         var parameters: [String: Any] = [
             recipe.parameterKeys.enabled: direction == .turnOn ? 1 : 0,
-            recipe.parameterKeys.focusModes: [
-                recipe.parameterKeys.modeIdentifier: focus.identifier,
-                recipe.parameterKeys.modeDisplayName: focus.name,
-            ],
         ]
         if direction == .turnOn {
             parameters[recipe.parameterKeys.assertionType] = recipe.assertionTypeWhenOn
@@ -167,32 +139,5 @@ public enum FocusShortcut {
         ]
 
         return try PropertyListSerialization.data(fromPropertyList: workflow, format: .binary, options: 0)
-    }
-}
-
-public extension FocusMode {
-    /// Reads DoNotDisturb's own configuration file. Private and undocumented, so every step is
-    /// optional and an unreadable file yields an empty list rather than an error: the caller's
-    /// fallback is to offer the manual route, which is a better outcome than a failure dialog.
-    ///
-    /// Shape, as observed on macOS 26:
-    ///
-    ///     { "data": [ { "modeConfigurations": {
-    ///         "<identifier>": { "mode": { "name": "<display name>" } } } } ] }
-    static func parse(modeConfigurations data: Data) -> [FocusMode] {
-        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let entries = root["data"] as? [[String: Any]],
-              let configurations = entries.first?["modeConfigurations"] as? [String: Any]
-        else { return [] }
-
-        return configurations.compactMap { identifier, value in
-            guard let configuration = value as? [String: Any],
-                  let mode = configuration["mode"] as? [String: Any],
-                  let name = mode["name"] as? String,
-                  !name.isEmpty
-            else { return nil }
-            return FocusMode(identifier: identifier, name: name)
-        }
-        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 }

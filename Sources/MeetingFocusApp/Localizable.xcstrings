@@ -429,6 +429,23 @@
         }
       }
     },
+    "Install Shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurzbefehle installieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install Shortcuts"
+          }
+        }
+      }
+    },
     "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends. Setting that up takes three short steps." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -561,6 +578,59 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MeetingFocus lives in your menu bar. Its icon is hollow when you are not in a meeting, dotted while you are joining, and filled during one."
+          }
+        }
+      }
+    },
+    "MeetingFocus will add two shortcuts — one to turn Do Not Disturb on when a meeting starts, one to turn it off when it ends — and Shortcuts will ask you to confirm each." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus fügt zwei Kurzbefehle hinzu — einen, der „Nicht stören“ zu Beginn einer Besprechung einschaltet, und einen, der es am Ende wieder ausschaltet — und die Kurzbefehle-App bittet dich, jeden zu bestätigen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus will add two shortcuts — one to turn Do Not Disturb on when a meeting starts, one to turn it off when it ends — and Shortcuts will ask you to confirm each."
+          }
+        }
+      }
+    },
+    "MeetingFocus – Focus Off" : {
+      "comment" : "Name of the generated shortcut that turns the Focus off.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus – Fokus aus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus – Focus Off"
+          }
+        }
+      }
+    },
+    "MeetingFocus – Focus On" : {
+      "comment" : "Name of the generated shortcut that turns the Focus on. Lives in the user's Shortcuts library.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus – Fokus ein"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus – Focus On"
           }
         }
       }
@@ -752,6 +822,23 @@
         }
       }
     },
+    "Prefer a different Focus? Open Shortcuts afterwards and tap the Focus name in either shortcut." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lieber ein anderer Fokus? Öffne danach die Kurzbefehle-App und tippe in einem der beiden Kurzbefehle auf den Namen des Fokus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefer a different Focus? Open Shortcuts afterwards and tap the Focus name in either shortcut."
+          }
+        }
+      }
+    },
     "Quit MeetingFocus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -908,6 +995,40 @@
         }
       }
     },
+    "Shortcuts installed and selected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurzbefehle installiert und ausgewählt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts installed and selected"
+          }
+        }
+      }
+    },
+    "Shortcuts would not open the generated file." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Kurzbefehle-App hat die erzeugte Datei nicht geöffnet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts would not open the generated file."
+          }
+        }
+      }
+    },
     "Show the menu bar icon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -942,6 +1063,23 @@
         }
       }
     },
+    "The shortcut could not be signed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Kurzbefehl konnte nicht signiert werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The shortcut could not be signed."
+          }
+        }
+      }
+    },
     "The shortcuts command line tool is unavailable." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -955,6 +1093,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The shortcuts command line tool is unavailable."
+          }
+        }
+      }
+    },
+    "The shortcuts were not added. You can try again, or set them up in Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Kurzbefehle wurden nicht hinzugefügt. Du kannst es erneut versuchen oder sie in den Einstellungen einrichten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The shortcuts were not added. You can try again, or set them up in Settings."
           }
         }
       }
@@ -1006,6 +1161,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To toggle a Focus, make a shortcut using the Set Focus action."
+          }
+        }
+      }
+    },
+    "Turn on Do Not Disturb for meetings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Nicht stören“ für Besprechungen einschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on Do Not Disturb for meetings"
           }
         }
       }
@@ -1074,6 +1246,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for approval in Login Items."
+          }
+        }
+      }
+    },
+    "Waiting for you to add them…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte darauf, dass du sie hinzufügst…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for you to add them…"
           }
         }
       }

@@ -43,7 +43,7 @@ struct OnboardingView: View {
         switch step {
         case .welcome: welcome
         case .permission: permission
-        case .focus: Text(verbatim: "focus")               // Task 5
+        case .focus: OnboardingFocusStep(settings: settings, advance: advance)
         case .finish: finish
         }
     }

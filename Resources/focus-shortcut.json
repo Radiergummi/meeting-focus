@@ -7,9 +7,6 @@
   "assertionTypeWhenOn": "Turned Off",
   "parameterKeys": {
     "enabled": "Enabled",
-    "focusModes": "FocusModes",
-    "assertionType": "AssertionType",
-    "modeIdentifier": "Identifier",
-    "modeDisplayName": "DisplayString"
+    "assertionType": "AssertionType"
   }
 }
