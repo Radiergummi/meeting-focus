@@ -8,6 +8,8 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
     private(set) lazy var monitor = MeetingMonitor(settings: settings)
+    /// Decided once per launch, before any scene reads it.
+    private(set) lazy var presentsOnboarding = settings.claimOnboardingPresentation()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Deliberately does not ask for Accessibility. A permission dialog with no explanation in
@@ -62,6 +64,6 @@ struct MeetingFocusApp: App {
         .defaultPosition(.center)
         // Opening itself on a fresh install is the whole point; on a configured one it must stay
         // shut, and `.suppressed` is what keeps a `Window` scene from being created at launch.
-        .defaultLaunchBehavior(delegate.settings.onboardingCompleted ? .suppressed : .presented)
+        .defaultLaunchBehavior(delegate.presentsOnboarding ? .presented : .suppressed)
     }
 }

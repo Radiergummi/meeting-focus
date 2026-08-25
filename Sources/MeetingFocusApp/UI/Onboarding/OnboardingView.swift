@@ -18,124 +18,122 @@ struct OnboardingView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            indicator
-            Divider()
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(24)
-        }
-        .frame(width: 460, height: 380)
-    }
-
-    private var indicator: some View {
-        HStack(spacing: 6) {
-            ForEach(Step.allCases, id: \.rawValue) { each in
-                Circle()
-                    .fill(each.rawValue <= step.rawValue ? Color.accentColor : Color.secondary.opacity(0.3))
-                    .frame(width: 7, height: 7)
-            }
-        }
-        .padding(12)
+        content
     }
 
     @ViewBuilder private var content: some View {
         switch step {
         case .welcome: welcome
         case .permission: permission
-        case .focus: OnboardingFocusStep(settings: settings, advance: advance)
+        case .focus: OnboardingFocusStep(settings: settings, advance: advance, back: back)
         case .finish: finish
         }
     }
 
     private var welcome: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Welcome to MeetingFocus")
-                .font(.title2.weight(.semibold))
-            Text("""
-                It notices when you join a meeting and turns on a Focus for you, then turns it off \
-                again when the meeting ends. Setting that up takes three short steps.
-                """)
-                .foregroundStyle(.secondary)
+        OnboardingPage(
+            symbol: "video.fill",
+            title: "Welcome to MeetingFocus",
+            message: "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends.",
+            rows: [
+                OnboardingRow(
+                    symbol: "eye",
+                    title: "Detects meetings on its own",
+                    detail: "Watches your meeting apps and your microphone, with no calendar and no account."
+                ),
+                OnboardingRow(
+                    symbol: "moon.fill",
+                    title: "Silences distractions",
+                    detail: "Runs a Shortcut when a meeting starts and ends. MeetingFocus can set one up for you."
+                ),
+                OnboardingRow(
+                    symbol: "lock.fill",
+                    title: "Stays on this Mac",
+                    detail: "Nothing it detects is uploaded, stored or shared."
+                ),
+            ]
+        ) {
             Spacer()
-            HStack {
-                Spacer()
-                Button("Get Started") { advance() }
-                    .keyboardShortcut(.defaultAction)
-            }
+            Button("Get Started") { advance() }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
         }
     }
 
     private var permission: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Let MeetingFocus see your meetings")
-                .font(.title2.weight(.semibold))
-            // Deliberately not naming one app: per-app detectors are next, and copy naming Teams
-            // would need rewriting the moment the second one lands.
-            Text("""
+        OnboardingPage(
+            symbol: "accessibility",
+            title: "Let MeetingFocus see your meetings",
+            message: """
                 Accessibility permission lets MeetingFocus read the windows of your meeting apps, \
                 which is how it can tell a real meeting from an open app. Without it, detection \
                 falls back to microphone activity alone.
-                """)
-                .foregroundStyle(.secondary)
-            if monitor.accessibilityTrusted {
-                Label("Accessibility granted", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-            } else {
-                Button("Grant Accessibility…") { AccessibilityAuthorization.requestIfNeeded() }
-                Text("macOS asks you to confirm in System Settings. This window will tick when it is done.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Button("Open Privacy & Security…") { AccessibilityAuthorization.openSystemSettings() }
-                    .buttonStyle(.link)
+                """,
+            back: { back() },
+            actions: {
+                if monitor.accessibilityTrusted {
+                    Label("Accessibility granted", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.callout)
+                    Spacer()
+                    Button("Continue") { advance() }
+                        .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
+                } else {
+                    Button("Later") { advance() }
+                    Spacer()
+                    Button("Open Privacy & Security…") { AccessibilityAuthorization.openSystemSettings() }
+                    Button("Grant Accessibility…") { AccessibilityAuthorization.requestIfNeeded() }
+                        .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
+                }
             }
-            Spacer()
-            HStack {
-                Button("Later") { advance() }
-                Spacer()
-                Button("Continue") { advance() }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(!monitor.accessibilityTrusted)
-            }
-        }
+        )
     }
 
     private var finish: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("You are set up")
-                .font(.title2.weight(.semibold))
-            Toggle("Launch at login", isOn: Binding(
-                get: { launchAtLogin },
-                set: { newValue in
-                    // A failure shows as the toggle bouncing back, because the value is re-read from
-                    // the service rather than assumed. Settings → General reports the reason; this
-                    // step deliberately does not grow an error label for the rare case.
-                    try? LaunchAtLogin.setEnabled(newValue)
-                    launchAtLogin = LaunchAtLogin.isEnabled
-                }
-            ))
-            Text("A meeting detector that is not running cannot detect anything.")
-                .font(.caption).foregroundStyle(.secondary)
-            Divider()
-            // An LSUIElement app has no Dock tile, so the icon is the only thing the user can look
-            // for. Saying what its three states mean is cheaper than a support question.
-            Text("""
-                MeetingFocus lives in your menu bar. Its icon is hollow when you are not in a meeting, \
-                dotted while you are joining, and filled during one.
-                """)
-                .font(.caption).foregroundStyle(.secondary)
-            Spacer()
-            HStack {
+        OnboardingPage(
+            symbol: "checkmark.circle.fill",
+            title: "You are set up",
+            message: "MeetingFocus lives in your menu bar and starts working straight away.",
+            rows: [
+                OnboardingRow(
+                    symbol: "menubar.arrow.up.rectangle",
+                    title: "Watch the menu bar icon",
+                    detail: "Hollow when you are not in a meeting, dotted while you are joining, filled during one."
+                ),
+                OnboardingRow(
+                    symbol: "gearshape",
+                    title: "Change anything later",
+                    detail: "Detectors, automation and this setup are all in Settings."
+                ),
+            ],
+            back: { back() },
+            actions: {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { launchAtLogin },
+                    set: { newValue in
+                        try? LaunchAtLogin.setEnabled(newValue)
+                        launchAtLogin = LaunchAtLogin.isEnabled
+                    }
+                ))
+                .toggleStyle(.checkbox)
                 Spacer()
                 Button("Done") {
                     settings.onboardingCompleted = true
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
             }
-        }
+        )
     }
 
     private func advance() {
         settings.onboardingStep = min(step.rawValue + 1, Step.finish.rawValue)
+    }
+
+    private func back() {
+        settings.onboardingStep = max(0, step.rawValue - 1)
     }
 }

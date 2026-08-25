@@ -35,23 +35,6 @@
         }
       }
     },
-    "A meeting detector that is not running cannot detect anything." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ein Besprechungserkenner, der nicht läuft, kann nichts erkennen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A meeting detector that is not running cannot detect anything."
-          }
-        }
-      }
-    },
     "About" : {
       "comment" : "Settings tab holding version and build provenance.",
       "extractionState" : "manual",
@@ -121,6 +104,23 @@
         }
       }
     },
+    "Back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        }
+      }
+    },
     "Back-to-back meetings are normal. Waiting avoids releasing your Focus during a short gap between two calls." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -151,6 +151,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Built publicly from source"
+          }
+        }
+      }
+    },
+    "Change anything later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Später alles ändern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change anything later"
           }
         }
       }
@@ -293,6 +310,40 @@
         }
       }
     },
+    "Detectors, automation and this setup are all in Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erkennung, Automatisierung und diese Einrichtung findest du in den Einstellungen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detectors, automation and this setup are all in Settings."
+          }
+        }
+      }
+    },
+    "Detects meetings on its own" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erkennt Besprechungen von selbst"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detects meetings on its own"
+          }
+        }
+      }
+    },
     "Diagnostics" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -412,6 +463,23 @@
         }
       }
     },
+    "Hollow when you are not in a meeting, dotted while you are joining, filled during one." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hohl, wenn du nicht in einer Besprechung bist, gepunktet beim Beitreten, gefüllt während einer Besprechung."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hollow when you are not in a meeting, dotted while you are joining, filled during one."
+          }
+        }
+      }
+    },
     "In a meeting" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -446,19 +514,19 @@
         }
       }
     },
-    "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends. Setting that up takes three short steps." : {
+    "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es erkennt, wenn du an einer Besprechung teilnimmst, und schaltet einen Fokus für dich ein — und am Ende der Besprechung wieder aus. Die Einrichtung dauert drei kurze Schritte."
+            "value" : "Es erkennt, wenn du an einer Besprechung teilnimmst, und schaltet einen Fokus für dich ein — und am Ende der Besprechung wieder aus."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends. Setting that up takes three short steps."
+            "value" : "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends."
           }
         }
       }
@@ -565,19 +633,19 @@
         }
       }
     },
-    "MeetingFocus lives in your menu bar. Its icon is hollow when you are not in a meeting, dotted while you are joining, and filled during one." : {
+    "MeetingFocus lives in your menu bar and starts working straight away." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MeetingFocus sitzt in der Menüleiste. Das Symbol ist hohl, wenn du nicht in einer Besprechung bist, gepunktet beim Beitreten und gefüllt während einer Besprechung."
+            "value" : "MeetingFocus sitzt in der Menüleiste und legt sofort los."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MeetingFocus lives in your menu bar. Its icon is hollow when you are not in a meeting, dotted while you are joining, and filled during one."
+            "value" : "MeetingFocus lives in your menu bar and starts working straight away."
           }
         }
       }
@@ -737,6 +805,23 @@
         }
       }
     },
+    "Nothing it detects is uploaded, stored or shared." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nichts von dem, was erkannt wird, wird hochgeladen, gespeichert oder geteilt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing it detects is uploaded, stored or shared."
+          }
+        }
+      }
+    },
     "Open Privacy & Security…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -788,6 +873,23 @@
         }
       }
     },
+    "Open Shortcuts afterwards and tap the Focus name in either shortcut." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffne danach die Kurzbefehle-App und tippe in einem der beiden Kurzbefehle auf den Namen des Fokus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Shortcuts afterwards and tap the Focus name in either shortcut."
+          }
+        }
+      }
+    },
     "Open…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -822,19 +924,19 @@
         }
       }
     },
-    "Prefer a different Focus? Open Shortcuts afterwards and tap the Focus name in either shortcut." : {
+    "Prefer a different Focus?" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lieber ein anderer Fokus? Öffne danach die Kurzbefehle-App und tippe in einem der beiden Kurzbefehle auf den Namen des Fokus."
+            "value" : "Lieber ein anderer Fokus?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prefer a different Focus? Open Shortcuts afterwards and tap the Focus name in either shortcut."
+            "value" : "Prefer a different Focus?"
           }
         }
       }
@@ -904,6 +1006,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Run Shortcuts on meeting changes"
+          }
+        }
+      }
+    },
+    "Runs a Shortcut when a meeting starts and ends. MeetingFocus can set one up for you." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Führt zu Beginn und am Ende einer Besprechung einen Kurzbefehl aus. MeetingFocus kann einen für dich einrichten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs a Shortcut when a meeting starts and ends. MeetingFocus can set one up for you."
           }
         }
       }
@@ -1046,6 +1165,23 @@
         }
       }
     },
+    "Silences distractions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schaltet Ablenkungen stumm"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Silences distractions"
+          }
+        }
+      }
+    },
     "Source code" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1059,6 +1195,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Source code"
+          }
+        }
+      }
+    },
+    "Stays on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bleibt auf diesem Mac"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stays on this Mac"
           }
         }
       }
@@ -1267,6 +1420,40 @@
         }
       }
     },
+    "Watch the menu bar icon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Achte auf das Menüleistensymbol"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch the menu bar icon"
+          }
+        }
+      }
+    },
+    "Watches your meeting apps and your microphone, with no calendar and no account." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beobachtet deine Besprechungs-Apps und dein Mikrofon — ohne Kalender und ohne Account."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watches your meeting apps and your microphone, with no calendar and no account."
+          }
+        }
+      }
+    },
     "Welcome to MeetingFocus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1331,23 +1518,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You are set up"
-          }
-        }
-      }
-    },
-    "macOS asks you to confirm in System Settings. This window will tick when it is done." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS bittet dich um Bestätigung in den Systemeinstellungen. Dieses Fenster hakt ab, sobald es erledigt ist."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS asks you to confirm in System Settings. This window will tick when it is done."
           }
         }
       }

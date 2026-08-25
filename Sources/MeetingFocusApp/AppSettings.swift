@@ -17,6 +17,7 @@ final class AppSettings {
         static let debugMode = "debugMode"
         static let onboardingCompleted = "onboardingCompleted"
         static let onboardingStep = "onboardingStep"
+        static let onboardingLaunchCount = "onboardingLaunchCount"
     }
 
     private let defaults: UserDefaults
@@ -32,6 +33,7 @@ final class AppSettings {
             Key.debugMode: false,
             Key.onboardingCompleted: false,
             Key.onboardingStep: 0,
+            Key.onboardingLaunchCount: 0,
         ])
         // Initialised directly so the `didSet` observers below do not fire during init.
         teamsDetectorEnabled = defaults.bool(forKey: Key.teamsDetectorEnabled)
@@ -44,6 +46,7 @@ final class AppSettings {
         debugMode = defaults.bool(forKey: Key.debugMode)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
         onboardingStep = defaults.integer(forKey: Key.onboardingStep)
+        onboardingLaunchCount = defaults.integer(forKey: Key.onboardingLaunchCount)
     }
 
     var teamsDetectorEnabled: Bool = true {
@@ -82,6 +85,29 @@ final class AppSettings {
     /// Where to resume. Quitting halfway through setup should not start it over.
     var onboardingStep: Int = 0 {
         didSet { defaults.set(onboardingStep, forKey: Key.onboardingStep) }
+    }
+    /// How many launches have offered to present onboarding by themselves. See
+    /// `claimOnboardingPresentation()`.
+    var onboardingLaunchCount: Int = 0 {
+        didSet { defaults.set(onboardingLaunchCount, forKey: Key.onboardingLaunchCount) }
+    }
+
+    /// How many launches may open onboarding by themselves before it goes quiet. The HIG advises
+    /// against re-presenting a flow someone skipped; one repeat is the compromise — it catches a
+    /// person who quit halfway through setup without nagging one who closed it on purpose. The menu's
+    /// `Set Up MeetingFocus…` item is always there regardless, which is the other half of the same
+    /// guidance.
+    static let onboardingLaunchLimit = 2
+
+    /// Answers "should the window open itself this launch?" and records that it did. Call exactly
+    /// once per launch: it is a question with a side effect, which is why it reads as a claim rather
+    /// than a getter.
+    func claimOnboardingPresentation() -> Bool {
+        guard !onboardingCompleted, onboardingLaunchCount < Self.onboardingLaunchLimit else {
+            return false
+        }
+        onboardingLaunchCount += 1
+        return true
     }
 
     /// Automation counts as configured only if it is enabled *and* at least one shortcut is named,
