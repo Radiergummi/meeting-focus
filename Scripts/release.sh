@@ -144,13 +144,18 @@ curl -fsSL "$FEED_URL" -o "$UPDATES/appcast.xml" 2>/dev/null \
 grep -q 'sparkle:edSignature' "$UPDATES/appcast.xml" \
     || { echo "appcast has no EdDSA signature; updates would be rejected" >&2; exit 1; }
 
+# Staged for the feed, but deliberately not deployed here: publishing the appcast before the
+# release assets exist would advertise an update whose download 404s. Scripts/publish-feed.sh
+# checks the enclosure URLs are reachable first.
+cp "$UPDATES/appcast.xml" worker/public/appcast.xml
+
 step "Done"
 echo "disk image: $DMG"
-echo "appcast:    $UPDATES/appcast.xml"
+echo "appcast:    $UPDATES/appcast.xml (staged at worker/public/appcast.xml)"
 echo
-echo "To publish:"
-echo "  1. create release v$VERSION at github.com/$REPO and attach $(basename "$DMG")"
-echo "  2. deploy $UPDATES/appcast.xml to $FEED_URL"
+echo "To publish, in this order:"
+echo "  1. gh release create v$VERSION \"$DMG\" --repo $REPO --title \"MeetingFocus $VERSION\""
+echo "  2. ./Scripts/publish-feed.sh        # verifies the download, then deploys the feed"
 if [[ $SKIP_NOTARIZE -eq 0 ]]; then
     step "Verifying Gatekeeper acceptance"
     spctl --assess --type exec -v "$APP" || { echo "the app was rejected by Gatekeeper" >&2; exit 1; }

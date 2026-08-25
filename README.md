@@ -115,10 +115,20 @@ The script runs the tests, archives, exports with Developer ID, verifies hardene
 Developer ID authority / secure timestamp before submitting, notarizes and staples, builds the DMG,
 and generates the Sparkle appcast.
 
-Then:
+Then, **in this order**:
 
-1. Create release `v<version>` at `github.com/Radiergummi/meeting-focus` and attach the DMG.
-2. Deploy `build/updates/appcast.xml` to `https://meetingfocus.mazetti.me/appcast.xml`.
+```sh
+gh release create v0.1.0 build/MeetingFocus-0.1.0.dmg \
+    --repo Radiergummi/meeting-focus --title "MeetingFocus 0.1.0"
+./Scripts/publish-feed.sh
+```
+
+The order matters. `publish-feed.sh` deploys the appcast to the Cloudflare Worker, and it checks
+every enclosure URL in the feed resolves before doing so — publishing a feed whose download 404s
+would advertise an update that every client fails to install.
+
+The feed is served by an assets-only Worker in `worker/`, so `appcast.xml` is a static file and
+there is no Worker code to maintain per release.
 
 ### One-time setup
 

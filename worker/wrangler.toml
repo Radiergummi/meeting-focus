@@ -1,0 +1,12 @@
+# Static-assets-only Worker serving the Sparkle update feed for MeetingFocus.
+#
+# Deployed under the existing worker name so the meetingfocus.mazetti.me custom domain binding is
+# preserved; renaming this would orphan the domain.
+#
+# There is no script: Workers Assets serves ./public directly and derives Content-Type from the
+# file extension, which is what Sparkle needs for appcast.xml (application/xml).
+name = "meetingfocus"
+compatibility_date = "2026-08-25"
+
+[assets]
+directory = "./public"

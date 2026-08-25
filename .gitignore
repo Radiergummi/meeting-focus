@@ -5,3 +5,6 @@ DerivedData/
 **/xcuserdata/
 *.dmg
 Scripts/.notarization-credentials
+# Wrangler caches the Cloudflare account id here; keep it out of a public repo.
+.wrangler/
+node_modules/
