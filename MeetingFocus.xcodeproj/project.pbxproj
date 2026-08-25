@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F6A287AA3C00ABEE387677E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 97AB6B02D9E441B5FFA66839 /* Sparkle */; };
 		125E81E17F74B7AA344CCA15 /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FB339F54994273092FBB28 /* TestSupport.swift */; };
 		1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040B04DFB875BFABA3508896 /* AudioProcessDetector.swift */; };
 		214CBED068CD65C683D5B62F /* MeetingFocusCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72DEB4F9A6C4C97464DD9E4D /* MeetingFocusCore.framework */; };
@@ -24,6 +25,7 @@
 		5CD97953F57B0F830A22D21E /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCDB97B0C29A95BE875CA98 /* MenuBarView.swift */; };
 		6B76D4B3D2D40E360895E146 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 641CECF9D29D759FE80C0BC6 /* SettingsView.swift */; };
 		6D5BA496C267960A55CBCD99 /* AutomationCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 807AE5431B7928A16604C3C7 /* AutomationCoordinatorTests.swift */; };
+		7E5231C33C389FCE103CDC19 /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = C696E14F19E234AF7295DE64 /* Updater.swift */; };
 		875E1A08CBE639A85E8309C9 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD4C8CD54CDE8AD3E9EA993 /* Log.swift */; };
 		8BF84D3F61ACB8D60E26E5BF /* TeamsAccessibilityDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B8088C209F2CD989AD87CB /* TeamsAccessibilityDetector.swift */; };
 		974CDB4EBD5A4150DC0B320F /* MeetingFocusCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 72DEB4F9A6C4C97464DD9E4D /* MeetingFocusCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -103,9 +105,11 @@
 		AFFE9677CEA08A4B8B346820 /* MeetingFocus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeetingFocus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B79AB959AAC371A3DB5E2296 /* AXChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXChangeObserver.swift; sourceTree = "<group>"; };
 		BA4001B03DC26F988AEDDB6A /* AXSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSupport.swift; sourceTree = "<group>"; };
+		C696E14F19E234AF7295DE64 /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		CE1B7470E462DBD5B27ABE7A /* Meeting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meeting.swift; sourceTree = "<group>"; };
 		E3012C82DD989668F7C43517 /* MeetingFocusCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MeetingFocusCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E92577C382924CA98FF15129 /* BundleIdentifierResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleIdentifierResolver.swift; sourceTree = "<group>"; };
+		EB57CA268BB8B84B35CE69E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		EBF16149B6698E453693F39E /* teams-markers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "teams-markers.json"; sourceTree = "<group>"; };
 		FF89DE15C07FF07B18E353C4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -124,6 +128,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				214CBED068CD65C683D5B62F /* MeetingFocusCore.framework in Frameworks */,
+				0F6A287AA3C00ABEE387677E /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,9 +180,11 @@
 			isa = PBXGroup;
 			children = (
 				6A10175F4AA4A8CD8F535275 /* AppSettings.swift */,
+				EB57CA268BB8B84B35CE69E5 /* Info.plist */,
 				8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */,
 				95E37E8EBAF3C24A73665621 /* MeetingFocusApp.swift */,
 				34E71989389D1BA959E80B4D /* MeetingMonitor.swift */,
+				C696E14F19E234AF7295DE64 /* Updater.swift */,
 				294FF8DD2101D8805ED8162F /* Accessibility */,
 				4C2783DAC862F6F85D837DD6 /* Automation */,
 				0C3863496A2405CA19DD72DD /* Detectors */,
@@ -341,6 +348,7 @@
 			);
 			name = MeetingFocus;
 			packageProductDependencies = (
+				97AB6B02D9E441B5FFA66839 /* Sparkle */,
 			);
 			productName = MeetingFocus;
 			productReference = AFFE9677CEA08A4B8B346820 /* MeetingFocus.app */;
@@ -382,6 +390,9 @@
 			);
 			mainGroup = B9278DD420652A8A473C55B1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				20F0F62DE5DAAB4999E2D209 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0FE6793A258509086E95F394 /* Products */;
 			projectDirPath = "";
@@ -443,6 +454,7 @@
 				F11F91B1DBC4EA3ACE8C7143 /* ShortcutsAutomationHandler.swift in Sources */,
 				8BF84D3F61ACB8D60E26E5BF /* TeamsAccessibilityDetector.swift in Sources */,
 				53D82433A16FCB56E9B68BEF /* TeamsMarkers.swift in Sources */,
+				7E5231C33C389FCE103CDC19 /* Updater.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,14 +493,13 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/MeetingFocusApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.MeetingFocus;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.meetingfocus;
 				PRODUCT_NAME = MeetingFocus;
 				SDKROOT = macosx;
 			};
@@ -565,7 +576,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.axprobe;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.axprobe;
 				PRODUCT_NAME = axprobe;
 				SDKROOT = macosx;
 			};
@@ -581,7 +592,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.MeetingFocusCoreTests;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.MeetingFocusCoreTests;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -602,7 +613,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.MeetingFocusCore;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.meetingfocus.core;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -625,7 +636,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.MeetingFocusCore;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.meetingfocus.core;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -639,14 +650,13 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/MeetingFocusApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.MeetingFocus;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.meetingfocus;
 				PRODUCT_NAME = MeetingFocus;
 				SDKROOT = macosx;
 			};
@@ -660,7 +670,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.axprobe;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.axprobe;
 				PRODUCT_NAME = axprobe;
 				SDKROOT = macosx;
 			};
@@ -746,7 +756,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.matchory.MeetingFocusCoreTests;
+				PRODUCT_BUNDLE_IDENTIFIER = me.mazetti.MeetingFocusCoreTests;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -800,6 +810,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		20F0F62DE5DAAB4999E2D209 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		97AB6B02D9E441B5FFA66839 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 20F0F62DE5DAAB4999E2D209 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C725348B6DD416A6405452CA /* Project object */;
 }

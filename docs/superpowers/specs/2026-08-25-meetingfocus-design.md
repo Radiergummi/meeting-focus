@@ -320,7 +320,7 @@ Accessibility permission: state shown explicitly, prompt via
 the AX detector reports `indeterminate` and the UI says so — the app degrades to the audio tier
 rather than failing silently. Signed with Developer ID `TH593VRB6W` so the grant survives rebuilds.
 
-`os.Logger` under subsystem `com.matchory.MeetingFocus`, categories `detector`, `accessibility`,
+`os.Logger` under subsystem `me.mazetti.meetingfocus`, categories `detector`, `accessibility`,
 `state`, `automation`.
 
 ## 10. Testing

@@ -74,6 +74,7 @@ struct MenuBarView: View {
             }
 
             Divider()
+            Button("Check for Updates…") { Updater.shared.checkForUpdates() }
             Button("Settings…") { openSettings() }
                 .keyboardShortcut(",")
             Button("Quit MeetingFocus") { NSApplication.shared.terminate(nil) }

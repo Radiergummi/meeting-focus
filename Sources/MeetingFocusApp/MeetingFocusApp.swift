@@ -15,6 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !AccessibilityAuthorization.isTrusted {
             AccessibilityAuthorization.requestIfNeeded()
         }
+        // Instantiating the updater starts its scheduled background checks.
+        _ = Updater.shared
         Task { await monitor.start() }
     }
 

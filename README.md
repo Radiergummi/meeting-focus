@@ -98,11 +98,54 @@ They live in `Resources/teams-markers.json` rather than in source, so a fix is a
 To re-derive them, enable Debug mode in Settings and watch:
 
 ```sh
-/usr/bin/log stream --level debug --predicate 'subsystem == "com.matchory.MeetingFocus"'
+/usr/bin/log stream --level debug --predicate 'subsystem == "me.mazetti.meetingfocus"'
 ```
 
 A warning is logged when a window looks like a meeting but no markers match — the signature of a
 rename. Meeting titles are redacted from logs by design.
+
+## Releasing
+
+```sh
+./Scripts/release.sh                    # signed, notarized, stapled DMG + signed appcast
+./Scripts/release.sh --skip-notarize    # local test build only — do not distribute
+```
+
+The script runs the tests, archives, exports with Developer ID, verifies hardened runtime /
+Developer ID authority / secure timestamp before submitting, notarizes and staples, builds the DMG,
+and generates the Sparkle appcast.
+
+Then:
+
+1. Create release `v<version>` at `github.com/Radiergummi/meeting-focus` and attach the DMG.
+2. Deploy `build/updates/appcast.xml` to `https://meetingfocus.mazetti.me/appcast.xml`.
+
+### One-time setup
+
+**Notarization credentials** — from
+[appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords:
+
+```sh
+xcrun notarytool store-credentials MeetingFocus-Notary \
+    --apple-id "you@example.com" --team-id TH593VRB6W --password "xxxx-xxxx-xxxx-xxxx"
+```
+
+**Sparkle signing key** — already generated; the public half is `SUPublicEDKey` in `project.yml`.
+
+> ⚠️ The private half lives in the login keychain as **"Private key for signing Sparkle updates"**.
+> **Back it up somewhere safe.** If it is lost, no existing installation can ever be updated
+> again — they would all have to be replaced by hand. Export it with:
+>
+> ```sh
+> "$(find ~/Library/Developer/Xcode/DerivedData/MeetingFocus-*/SourcePackages/artifacts/sparkle \
+>     -name generate_keys -type f | head -1)" -x sparkle-private-key.txt
+> ```
+>
+> Store that file in a password manager and delete it from disk.
+
+Note the appcast uses version-pinned download URLs rather than `releases/latest/download`, because
+`latest` would make every entry — including older ones — resolve to the newest asset. The script
+seeds from the published appcast so earlier versions keep their entries.
 
 ## Documentation
 

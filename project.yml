@@ -1,9 +1,13 @@
 name: MeetingFocus
 options:
-  bundleIdPrefix: com.matchory
+  bundleIdPrefix: me.mazetti
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -21,7 +25,7 @@ targets:
     sources: [Sources/MeetingFocusCore]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.matchory.MeetingFocusCore
+        PRODUCT_BUNDLE_IDENTIFIER: me.mazetti.meetingfocus.core
         ENABLE_HARDENED_RUNTIME: YES
   MeetingFocusCoreTests:
     type: bundle.unit-test
@@ -39,17 +43,30 @@ targets:
     dependencies:
       - target: MeetingFocusCore
         embed: true
+      - package: Sparkle
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.matchory.MeetingFocus
+        PRODUCT_BUNDLE_IDENTIFIER: me.mazetti.meetingfocus
         PRODUCT_NAME: MeetingFocus
         ENABLE_HARDENED_RUNTIME: YES
-        INFOPLIST_KEY_LSUIElement: YES
-        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        ENABLE_APP_SANDBOX: NO
+        # An explicit Info.plist rather than INFOPLIST_KEY_* settings: those only support Apple's
+        # own known keys, and silently drop third-party ones such as Sparkle's SU* family.
+        GENERATE_INFOPLIST_FILE: NO
+    info:
+      path: Sources/MeetingFocusApp/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         # Driving Shortcuts raises an Automation prompt attributed to this app; without a usage
         # description macOS turns that into a silent denial.
-        INFOPLIST_KEY_NSAppleEventsUsageDescription: "MeetingFocus runs the Shortcuts you configure when a meeting starts or ends."
-        ENABLE_APP_SANDBOX: NO
+        NSAppleEventsUsageDescription: MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.
+        # Auto-update feed. Repoint this one value to move the appcast.
+        SUFeedURL: https://meetingfocus.mazetti.me/appcast.xml
+        SUPublicEDKey: PF6+rOJ1fFGZkt/v+OtImnW0UyQvGlRvafdlDWPusOM=
+        SUEnableAutomaticChecks: true
   axprobe:
     type: tool
     platform: macOS
