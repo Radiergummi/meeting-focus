@@ -39,6 +39,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 @main
 struct MeetingFocusApp: App {
+    static let onboardingWindowID = "onboarding"
+
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
@@ -54,5 +56,14 @@ struct MeetingFocusApp: App {
         Settings {
             SettingsView(settings: delegate.settings, monitor: delegate.monitor)
         }
+
+        Window("Set Up MeetingFocus", id: Self.onboardingWindowID) {
+            OnboardingView(settings: delegate.settings, monitor: delegate.monitor)
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
+        // Opening itself on a fresh install is the whole point; on a configured one it must stay
+        // shut, and `.suppressed` is what keeps a `Window` scene from being created at launch.
+        .defaultLaunchBehavior(delegate.settings.onboardingCompleted ? .suppressed : .presented)
     }
 }

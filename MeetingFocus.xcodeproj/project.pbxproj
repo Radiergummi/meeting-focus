@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0F6A287AA3C00ABEE387677E /* MeetingFocusCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2FA45C7A1676DADA4C0729B9 /* MeetingFocusCore */; };
 		1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040B04DFB875BFABA3508896 /* AudioProcessDetector.swift */; };
+		38EEBCA315EB7AF2A3B0B5E9 /* focus-shortcut.json in Resources */ = {isa = PBXBuildFile; fileRef = 62A2B6ECAD008E37871BD254 /* focus-shortcut.json */; };
 		4A7369A9EF6EC3455A2F11E7 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 97AB6B02D9E441B5FFA66839 /* Sparkle */; };
 		4AEC632CB5539EE071C91D50 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */; };
 		51FF3FFC726597EDA3814BA5 /* AXChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79AB959AAC371A3DB5E2296 /* AXChangeObserver.swift */; };
@@ -24,6 +25,7 @@
 		A9262633CCA0D493000B12EF /* BundleIdentifierResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92577C382924CA98FF15129 /* BundleIdentifierResolver.swift */; };
 		AF3361D69D7618AF7CA183A7 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A10175F4AA4A8CD8F535275 /* AppSettings.swift */; };
 		BA69C4265A3C97C2685387D2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B9A7627C22F9DB9384C8631 /* Localizable.xcstrings */; };
+		D82FE8A66E06F0580822BBEC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B49AFBA47E0C4BD34E406F /* OnboardingView.swift */; };
 		E69B777CA21D916C19D712BB /* MeetingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34E71989389D1BA959E80B4D /* MeetingMonitor.swift */; };
 		EFDD85DCE0663213E5E9A6F0 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE79B26962593FE09A75138 /* BuildInfo.swift */; };
 		F11F91B1DBC4EA3ACE8C7143 /* ShortcutsAutomationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1595DB0B5DCE5BA5B646648E /* ShortcutsAutomationHandler.swift */; };
@@ -37,6 +39,7 @@
 		34E71989389D1BA959E80B4D /* MeetingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMonitor.swift; sourceTree = "<group>"; };
 		3BCDB97B0C29A95BE875CA98 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		5B0C7179611BB44AD9548274 /* TeamsMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsMarkers.swift; sourceTree = "<group>"; };
+		62A2B6ECAD008E37871BD254 /* focus-shortcut.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "focus-shortcut.json"; sourceTree = "<group>"; };
 		641CECF9D29D759FE80C0BC6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6A10175F4AA4A8CD8F535275 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
@@ -48,6 +51,7 @@
 		BA4001B03DC26F988AEDDB6A /* AXSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSupport.swift; sourceTree = "<group>"; };
 		C696E14F19E234AF7295DE64 /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		DBE79B26962593FE09A75138 /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
+		E7B49AFBA47E0C4BD34E406F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		E92577C382924CA98FF15129 /* BundleIdentifierResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleIdentifierResolver.swift; sourceTree = "<group>"; };
 		EB57CA268BB8B84B35CE69E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		EBF16149B6698E453693F39E /* teams-markers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "teams-markers.json"; sourceTree = "<group>"; };
@@ -102,6 +106,14 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		41847FBE4203E5FAA3FDBD39 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				E7B49AFBA47E0C4BD34E406F /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		4A41B1BBA94FCC59DA17D96E /* MeetingFocusApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +145,7 @@
 		642768E3DE067EEB6F065C42 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				62A2B6ECAD008E37871BD254 /* focus-shortcut.json */,
 				EBF16149B6698E453693F39E /* teams-markers.json */,
 			);
 			path = Resources;
@@ -151,6 +164,7 @@
 			children = (
 				3BCDB97B0C29A95BE875CA98 /* MenuBarView.swift */,
 				641CECF9D29D759FE80C0BC6 /* SettingsView.swift */,
+				41847FBE4203E5FAA3FDBD39 /* Onboarding */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -242,6 +256,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BA69C4265A3C97C2685387D2 /* Localizable.xcstrings in Resources */,
+				38EEBCA315EB7AF2A3B0B5E9 /* focus-shortcut.json in Resources */,
 				9811F7EF0BF194B724E7C7E0 /* teams-markers.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -264,6 +279,7 @@
 				56C7B07479B31AA30D199F4D /* MeetingFocusApp.swift in Sources */,
 				E69B777CA21D916C19D712BB /* MeetingMonitor.swift in Sources */,
 				5CD97953F57B0F830A22D21E /* MenuBarView.swift in Sources */,
+				D82FE8A66E06F0580822BBEC /* OnboardingView.swift in Sources */,
 				6B76D4B3D2D40E360895E146 /* SettingsView.swift in Sources */,
 				F11F91B1DBC4EA3ACE8C7143 /* ShortcutsAutomationHandler.swift in Sources */,
 				8BF84D3F61ACB8D60E26E5BF /* TeamsAccessibilityDetector.swift in Sources */,

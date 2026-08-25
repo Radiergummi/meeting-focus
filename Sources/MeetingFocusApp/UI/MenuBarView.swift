@@ -39,6 +39,7 @@ struct MenuBarView: View {
     @Bindable var monitor: MeetingMonitor
     @Bindable var settings: AppSettings
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Label(statusText, systemImage: statusSymbol)
@@ -102,6 +103,7 @@ struct MenuBarView: View {
     }
 
     @ViewBuilder private var actions: some View {
+        Button("Set Up MeetingFocus…") { showOnboarding() }
         Button("Check for Updates…") { Updater.shared.checkForUpdates() }
         Button("Settings…") { showSettings() }
             .keyboardShortcut(",")
@@ -115,6 +117,11 @@ struct MenuBarView: View {
     /// existing, hence the hop to the next run-loop pass.
     private func showSettings() {
         openSettings()
+        DispatchQueue.main.async { NSApp.activate(ignoringOtherApps: true) }
+    }
+
+    private func showOnboarding() {
+        openWindow(id: MeetingFocusApp.onboardingWindowID)
         DispatchQueue.main.async { NSApp.activate(ignoringOtherApps: true) }
     }
 

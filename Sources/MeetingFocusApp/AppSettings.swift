@@ -15,6 +15,8 @@ final class AppSettings {
         static let endCooldownSeconds = "endCooldownSeconds"
         static let showMenuBarIcon = "showMenuBarIcon"
         static let debugMode = "debugMode"
+        static let onboardingCompleted = "onboardingCompleted"
+        static let onboardingStep = "onboardingStep"
     }
 
     private let defaults: UserDefaults
@@ -28,6 +30,8 @@ final class AppSettings {
             Key.endCooldownSeconds: 45.0,
             Key.showMenuBarIcon: true,
             Key.debugMode: false,
+            Key.onboardingCompleted: false,
+            Key.onboardingStep: 0,
         ])
         // Initialised directly so the `didSet` observers below do not fire during init.
         teamsDetectorEnabled = defaults.bool(forKey: Key.teamsDetectorEnabled)
@@ -38,6 +42,8 @@ final class AppSettings {
         endCooldownSeconds = defaults.double(forKey: Key.endCooldownSeconds)
         showMenuBarIcon = defaults.bool(forKey: Key.showMenuBarIcon)
         debugMode = defaults.bool(forKey: Key.debugMode)
+        onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
+        onboardingStep = defaults.integer(forKey: Key.onboardingStep)
     }
 
     var teamsDetectorEnabled: Bool = true {
@@ -67,6 +73,15 @@ final class AppSettings {
     }
     var debugMode: Bool = false {
         didSet { defaults.set(debugMode, forKey: Key.debugMode) }
+    }
+    /// False on a fresh install *and* on an existing one, which is deliberate: an installation that
+    /// predates onboarding has no shortcut configured either, so it benefits from the same walk.
+    var onboardingCompleted: Bool = false {
+        didSet { defaults.set(onboardingCompleted, forKey: Key.onboardingCompleted) }
+    }
+    /// Where to resume. Quitting halfway through setup should not start it over.
+    var onboardingStep: Int = 0 {
+        didSet { defaults.set(onboardingStep, forKey: Key.onboardingStep) }
     }
 
     /// Automation counts as configured only if it is enabled *and* at least one shortcut is named,
