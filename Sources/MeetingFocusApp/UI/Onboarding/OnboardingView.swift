@@ -42,7 +42,7 @@ struct OnboardingView: View {
     @ViewBuilder private var content: some View {
         switch step {
         case .welcome: welcome
-        case .permission: Text(verbatim: "permission")     // Task 4
+        case .permission: permission
         case .focus: Text(verbatim: "focus")               // Task 5
         case .finish: finish
         }
@@ -62,6 +62,39 @@ struct OnboardingView: View {
                 Spacer()
                 Button("Get Started") { advance() }
                     .keyboardShortcut(.defaultAction)
+            }
+        }
+    }
+
+    private var permission: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Let MeetingFocus see your meetings")
+                .font(.title2.weight(.semibold))
+            // Deliberately not naming one app: per-app detectors are next, and copy naming Teams
+            // would need rewriting the moment the second one lands.
+            Text("""
+                Accessibility permission lets MeetingFocus read the windows of your meeting apps, \
+                which is how it can tell a real meeting from an open app. Without it, detection \
+                falls back to microphone activity alone.
+                """)
+                .foregroundStyle(.secondary)
+            if monitor.accessibilityTrusted {
+                Label("Accessibility granted", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Button("Grant Accessibility…") { AccessibilityAuthorization.requestIfNeeded() }
+                Text("macOS asks you to confirm in System Settings. This window will tick when it is done.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Button("Open Privacy & Security…") { AccessibilityAuthorization.openSystemSettings() }
+                    .buttonStyle(.link)
+            }
+            Spacer()
+            HStack {
+                Button("Later") { advance() }
+                Spacer()
+                Button("Continue") { advance() }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(!monitor.accessibilityTrusted)
             }
         }
     }

@@ -10,11 +10,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var monitor = MeetingMonitor(settings: settings)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Ask once at launch; if it is refused the app degrades to microphone-only detection and
-        // the menu explains how to grant it later.
-        if !AccessibilityAuthorization.isTrusted {
-            AccessibilityAuthorization.requestIfNeeded()
-        }
+        // Deliberately does not ask for Accessibility. A permission dialog with no explanation in
+        // front of it gets refused; the onboarding window's permission step asks instead, and the
+        // menu and Settings both offer it afterwards.
         // Instantiating the updater starts its scheduled background checks.
         _ = Updater.shared
         Task { await monitor.start() }

@@ -70,6 +70,23 @@
         }
       }
     },
+    "Accessibility permission lets MeetingFocus read the windows of your meeting apps, which is how it can tell a real meeting from an open app. Without it, detection falls back to microphone activity alone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bedienungshilfen-Berechtigung erlaubt MeetingFocus, die Fenster deiner Besprechungs-Apps zu lesen — so lässt sich eine echte Besprechung von einer bloß geöffneten App unterscheiden. Ohne sie bleibt nur die Mikrofonaktivität."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility permission lets MeetingFocus read the windows of your meeting apps, which is how it can tell a real meeting from an open app. Without it, detection falls back to microphone activity alone."
+          }
+        }
+      }
+    },
     "Automation" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -152,6 +169,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose Shortcuts…"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
           }
         }
       }
@@ -344,6 +378,23 @@
         }
       }
     },
+    "Grant Accessibility…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bedienungshilfen erlauben…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant Accessibility…"
+          }
+        }
+      }
+    },
     "In a meeting" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -412,6 +463,23 @@
         }
       }
     },
+    "Later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Später"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
     "Launch at login" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -425,6 +493,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Launch at login"
+          }
+        }
+      }
+    },
+    "Let MeetingFocus see your meetings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus deine Besprechungen sehen lassen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let MeetingFocus see your meetings"
           }
         }
       }
@@ -561,6 +646,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not in a meeting"
+          }
+        }
+      }
+    },
+    "Open Privacy & Security…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutz & Sicherheit öffnen…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Privacy & Security…"
           }
         }
       }
@@ -1023,6 +1125,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You are set up"
+          }
+        }
+      }
+    },
+    "macOS asks you to confirm in System Settings. This window will tick when it is done." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS bittet dich um Bestätigung in den Systemeinstellungen. Dieses Fenster hakt ab, sobald es erledigt ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS asks you to confirm in System Settings. This window will tick when it is done."
           }
         }
       }
