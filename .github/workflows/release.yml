@@ -70,6 +70,21 @@ jobs:
             exit 1
           fi
 
+      # A gate, sitting with lint and test for the same reason: a release nobody can describe is one
+      # nobody should install. Failing here costs a one-line edit; failing after signing would mean
+      # a signed artifact exists for a release with no notes.
+      #
+      # The extraction lives in Scripts/release-notes.sh rather than inline here, so that this and
+      # Scripts/preflight.sh cannot drift apart — and so it can be run and tested outside CI.
+      - name: Extract changelog entry
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        # A redirect and a separate `cat`, not `script | tee`: GitHub runs this as `bash -e` WITHOUT
+        # pipefail, so a pipeline's status is tee's, and a failing script would pass the gate.
+        run: |
+          ./Scripts/release-notes.sh "$VERSION" > "$RUNNER_TEMP/changes.md"
+          cat "$RUNNER_TEMP/changes.md"
+
       - name: Build, notarize and package
         env:
           NOTARY_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
@@ -107,12 +122,18 @@ jobs:
           DMG: ${{ steps.checksum.outputs.dmg }}
         run: |
           NOTES=$(mktemp)
+          # Prepended rather than substituted into the template: the entry is multi-line, and sed
+          # cannot carry newlines through a replacement without mangling them.
+          {
+            echo "## What changed"
+            cat "$RUNNER_TEMP/changes.md"
+          } > "$NOTES"
           sed -e "s|VERSION_PLACEHOLDER|$VERSION|g" \
               -e "s|SHA256_PLACEHOLDER|$SHA256|g" \
               -e "s|RUN_URL_PLACEHOLDER|$RUN_URL|g" \
               -e "s|ATTESTATION_URL_PLACEHOLDER|$ATTESTATION_URL|g" \
               -e "s|COMMIT_PLACEHOLDER|$COMMIT|g" \
-              .github/templates/release.md > "$NOTES"
+              .github/templates/release.md >> "$NOTES"
           gh release create "$GITHUB_REF_NAME" "$DMG" \
             --draft --title "MeetingFocus $VERSION" --notes-file "$NOTES"
           echo "draft release created — publish it, then run 'make publish' locally to sign the feed"
