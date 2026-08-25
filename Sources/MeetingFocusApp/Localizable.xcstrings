@@ -70,6 +70,23 @@
         }
       }
     },
+    "Accessibility granted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bedienungshilfen erlaubt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility granted"
+          }
+        }
+      }
+    },
     "Accessibility permission lets MeetingFocus read the windows of your meeting apps, which is how it can tell a real meeting from an open app. Without it, detection falls back to microphone activity alone." : {
       "extractionState" : "manual",
       "localizations" : {
