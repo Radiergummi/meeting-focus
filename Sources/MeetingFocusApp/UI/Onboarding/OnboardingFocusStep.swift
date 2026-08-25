@@ -52,11 +52,16 @@ struct OnboardingFocusStep: View {
                 }
                 Spacer()
                 Button("Later") { advance() }
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.large)
                 Button(installed ? "Continue" : "Install Shortcuts") {
                     if installed { advance() } else { install() }
                 }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.large)
                 .disabled(installing)
             }
         )

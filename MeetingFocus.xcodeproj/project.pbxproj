@@ -10,6 +10,7 @@
 		0F6A287AA3C00ABEE387677E /* MeetingFocusCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2FA45C7A1676DADA4C0729B9 /* MeetingFocusCore */; };
 		1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040B04DFB875BFABA3508896 /* AudioProcessDetector.swift */; };
 		38EEBCA315EB7AF2A3B0B5E9 /* focus-shortcut.json in Resources */ = {isa = PBXBuildFile; fileRef = 62A2B6ECAD008E37871BD254 /* focus-shortcut.json */; };
+		3DC8EE9C87316454744305F5 /* WindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CDAC45DCDAC02298640B2B /* WindowChrome.swift */; };
 		4A7369A9EF6EC3455A2F11E7 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 97AB6B02D9E441B5FFA66839 /* Sparkle */; };
 		4AEC632CB5539EE071C91D50 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */; };
 		51FF3FFC726597EDA3814BA5 /* AXChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79AB959AAC371A3DB5E2296 /* AXChangeObserver.swift */; };
@@ -42,6 +43,7 @@
 		263668BA411F8876BE67CD72 /* meeting-state-detector */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "meeting-state-detector"; path = .; sourceTree = SOURCE_ROOT; };
 		34E71989389D1BA959E80B4D /* MeetingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMonitor.swift; sourceTree = "<group>"; };
 		3BCDB97B0C29A95BE875CA98 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		54CDAC45DCDAC02298640B2B /* WindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowChrome.swift; sourceTree = "<group>"; };
 		5B0C7179611BB44AD9548274 /* TeamsMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsMarkers.swift; sourceTree = "<group>"; };
 		62A2B6ECAD008E37871BD254 /* focus-shortcut.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "focus-shortcut.json"; sourceTree = "<group>"; };
 		641CECF9D29D759FE80C0BC6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				21942EA1769D284CCB2CE397 /* OnboardingFocusStep.swift */,
 				91A7BBEC51928D04EC946050 /* OnboardingPage.swift */,
 				E7B49AFBA47E0C4BD34E406F /* OnboardingView.swift */,
+				54CDAC45DCDAC02298640B2B /* WindowChrome.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -297,6 +300,7 @@
 				8BF84D3F61ACB8D60E26E5BF /* TeamsAccessibilityDetector.swift in Sources */,
 				53D82433A16FCB56E9B68BEF /* TeamsMarkers.swift in Sources */,
 				7E5231C33C389FCE103CDC19 /* Updater.swift in Sources */,
+				3DC8EE9C87316454744305F5 /* WindowChrome.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

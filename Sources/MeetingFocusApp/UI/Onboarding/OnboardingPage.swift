@@ -19,14 +19,23 @@ struct OnboardingRow: Identifiable {
 ///
 /// Two details that are easy to get backwards, both taken from that reference:
 ///
-/// 1. **The column is left-aligned, not centred.** The glyph, the headline, the message and the rows
-///    all share one leading edge. What is centred is the *column*, via symmetric insets — which
-///    reads as balanced without the ransom-note effect of centring a wrapped paragraph.
+/// 1. **The column is left-aligned, not centred.** The glyph, the headline, the message, the rows
+///    and the chevron above them all share one leading edge, via `inset`. What is centred is the
+///    *column*, via that symmetric inset — which reads as balanced without the ransom-note effect
+///    of centring a wrapped paragraph.
+///
+///    The action row deliberately does **not** share that inset: it hugs the card's edges instead
+///    (`.padding(.horizontal, 20)`), the way a window's own controls do, rather than lining up with
+///    the paragraph above it. This was tried the other way — one inset for everything, including
+///    the action row — and rejected: it read as less consistent, not more, and lost the proportions
+///    of the reference. Don't unify the two again without a reason to.
 /// 2. **The type is compact.** A first-run sheet is not a splash screen: the headline sits at
 ///    roughly `.headline`, not `.largeTitle`, and the rows are smaller still.
 ///
 /// Deliberately not a wizard. Progress dots would promise a longer form than four one-idea steps,
-/// and the reference has none. Going back is a chevron in the top-left corner, as it is there.
+/// and the reference has none. Going back is a chevron in the top-left corner, as it is there —
+/// aligned with the content column's leading edge, not the card's raw corner; its exact position
+/// is a known, accepted limitation and not worth further iteration.
 struct OnboardingPage<Actions: View>: View {
     let symbol: String
     let title: LocalizedStringKey
@@ -36,26 +45,51 @@ struct OnboardingPage<Actions: View>: View {
     var back: (() -> Void)?
     @ViewBuilder var actions: Actions
 
+    @Environment(\.dismissWindow) private var dismissWindow
+
     private let inset: CGFloat = 72
+    // Measured from a screenshot, not computed: `.glass` adds its own padding around the 30×30
+    // icon frame, which isn't visible from the source. The button renders at 38pt tall.
+    private let chevronHeight: CGFloat = 38
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        VStack(alignment: .leading, spacing: 0) {
+            // The content column: glyph, headline, message, rows and the chevron above them, all
+            // inset for readable line length rather than hugging the card's edges.
             VStack(alignment: .leading, spacing: 0) {
+                // Always present, whether or not `back` is set, so this row reserves the same
+                // height on every step and the rest of the column never shifts.
+                Group {
+                    if let back {
+                        Button(action: back) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .semibold))
+                                .frame(width: 30, height: 30)
+                        }
+                        .buttonStyle(.glass)
+                        .buttonBorderShape(.circle)
+                        .accessibilityLabel("Back")
+                    } else {
+                        Color.clear
+                    }
+                }
+                .frame(height: chevronHeight, alignment: .leading)
+
                 Image(systemName: symbol)
                     .font(.system(size: 34, weight: .regular))
                     .foregroundStyle(.tint)
-                    .padding(.top, 52)
-                    .padding(.bottom, 18)
+                    .padding(.top, 24)
 
                 Text(title)
                     .font(.system(size: 15, weight: .bold))
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 16)
 
                 Text(message)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 4)
+                    .padding(.top, 6)
 
                 if !rows.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
@@ -81,35 +115,35 @@ struct OnboardingPage<Actions: View>: View {
                             }
                         }
                     }
-                    .padding(.top, 18)
+                    .padding(.top, 24)
                 }
 
                 Spacer(minLength: 16)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, inset)
 
-            // Back sits over the content rather than in it, so it cannot shift the column by a pixel
-            // between steps that have it and the one that does not.
-            if let back {
-                Button(action: back) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 12, weight: .semibold))
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(.borderless)
-                .background(Color.secondary.opacity(0.12), in: Circle())
-                .padding(16)
-                .accessibilityLabel("Back")
-            }
-
-            VStack {
-                Spacer()
-                HStack(spacing: 10) { actions }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 18)
-            }
+            // Hugs the card's edges rather than the content column's inset — a corner control,
+            // the way a window's own controls sit close to its edges.
+            HStack(spacing: 10) { actions }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 18)
         }
+        // Top is deliberately `0`: the window is still `.titled`, so SwiftUI reserves a safe-area
+        // inset above the content for the (hidden) title bar, and `.windowResizability(.contentSize)`
+        // sizes the window to the content frame plus that inset. That reserved inset already *is*
+        // the space above the chevron — a safe area is the system telling us where not to put
+        // content — so adding our own top padding on top of it would double it, and fighting it
+        // with `.ignoresSafeArea()` only relocates the surplus to the bottom instead of removing
+        // it. Pairs with `WindowChrome.fullSizeContentView`, which is what makes the window paint
+        // its own background behind that inset region instead of leaving a distinct title bar.
+        .padding(.top, 0)
         .frame(width: 520, height: 430)
+        // The close button is gone with the chrome, and an LSUIElement app has no Dock tile to fall
+        // back on. Escape leaves the window without completing, which the resume logic already
+        // handles — `onboardingStep` is saved, so reopening returns to the same place. `dismiss()`
+        // is for hierarchical presentations (sheets, popovers) and does nothing for a top-level
+        // `Window` scene; `dismissWindow()` with no arguments is the one that actually closes the
+        // window the environment belongs to.
+        .onExitCommand { dismissWindow() }
     }
 }

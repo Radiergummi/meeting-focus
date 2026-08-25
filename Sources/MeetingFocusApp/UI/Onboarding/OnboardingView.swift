@@ -10,7 +10,7 @@ struct OnboardingView: View {
 
     @Bindable var settings: AppSettings
     @Bindable var monitor: MeetingMonitor
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismissWindow) private var dismissWindow
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
     private var step: Step {
@@ -19,6 +19,7 @@ struct OnboardingView: View {
 
     var body: some View {
         content
+            .background(WindowChrome())
     }
 
     @ViewBuilder private var content: some View {
@@ -56,7 +57,9 @@ struct OnboardingView: View {
             Spacer()
             Button("Get Started") { advance() }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.large)
         }
     }
 
@@ -81,14 +84,24 @@ struct OnboardingView: View {
                     Spacer()
                     Button("Continue") { advance() }
                         .keyboardShortcut(.defaultAction)
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
                 } else {
                     Button("Later") { advance() }
+                        .buttonStyle(.glass)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
                     Spacer()
                     Button("Open Privacy & Security…") { AccessibilityAuthorization.openSystemSettings() }
+                        .buttonStyle(.glass)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
                     Button("Grant Accessibility…") { AccessibilityAuthorization.requestIfNeeded() }
                         .keyboardShortcut(.defaultAction)
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
                 }
             }
         )
@@ -129,10 +142,12 @@ struct OnboardingView: View {
                 Spacer()
                 Button("Done") {
                     settings.onboardingCompleted = true
-                    dismiss()
+                    dismissWindow()
                 }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.large)
             }
         )
     }

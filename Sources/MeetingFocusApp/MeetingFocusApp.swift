@@ -35,6 +35,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         Task { await monitor.stop() }
     }
+
+    // Without this, AppKit's default is to quit once the onboarding window closes — which the
+    // menu bar icon and background monitoring must survive. That default went unnoticed until now
+    // because the onboarding window's own dismissal was silently broken (see `OnboardingPage`).
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
 }
 
 @main
@@ -60,6 +67,8 @@ struct MeetingFocusApp: App {
         Window("Set Up MeetingFocus", id: Self.onboardingWindowID) {
             OnboardingView(settings: delegate.settings, monitor: delegate.monitor)
         }
+        .windowStyle(.hiddenTitleBar)
+        .windowBackgroundDragBehavior(.enabled)
         .windowResizability(.contentSize)
         .defaultPosition(.center)
         // Opening itself on a fresh install is the whole point; on a configured one it must stay
