@@ -57,5 +57,8 @@ struct WindowChrome: NSViewRepresentable {
         // (`.padding(.top, 0)`, deliberately) rather than fighting it — the two are a pair, 100
         // lines apart, and neither alone gets the spacing right.
         window.styleMask.insert(.fullSizeContentView)
+        // The SwiftUI scene modifier `.windowBackgroundDragBehavior(.enabled)` is applied on the
+        // scene but does not take effect on this window, so the AppKit property is set directly.
+        window.isMovableByWindowBackground = true
     }
 }
