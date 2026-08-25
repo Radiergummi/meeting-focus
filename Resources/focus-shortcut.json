@@ -1,0 +1,15 @@
+{
+  "actionIdentifier": "is.workflow.actions.dnd.set",
+  "clientVersion": "2607.0.6.6",
+  "minimumClientVersion": 900,
+  "iconGlyph": 59511,
+  "iconColor": 4292093695,
+  "assertionTypeWhenOn": "Turned Off",
+  "parameterKeys": {
+    "enabled": "Enabled",
+    "focusModes": "FocusModes",
+    "assertionType": "AssertionType",
+    "modeIdentifier": "Identifier",
+    "modeDisplayName": "DisplayString"
+  }
+}
