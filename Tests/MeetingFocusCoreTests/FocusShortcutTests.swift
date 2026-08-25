@@ -19,7 +19,7 @@ final class FocusShortcutTests: XCTestCase {
 
     func testOnCarriesTheFocusAndHoldsUntilTurnedOff() throws {
         let params = try parameters(
-            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .on)
+            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .turnOn)
         )
         XCTAssertEqual(params["Enabled"] as? Int, 1)
         XCTAssertEqual(params["AssertionType"] as? String, "Turned Off")
@@ -32,7 +32,7 @@ final class FocusShortcutTests: XCTestCase {
     /// Shortcuts shows as a nonsense summary.
     func testOffOmitsTheAssertion() throws {
         let params = try parameters(
-            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .off)
+            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .turnOff)
         )
         XCTAssertEqual(params["Enabled"] as? Int, 0)
         XCTAssertNil(params["AssertionType"])
@@ -41,8 +41,9 @@ final class FocusShortcutTests: XCTestCase {
     /// `shortcuts sign` rejects an XML plist with the same error it gives for a wrong file
     /// extension, so a format regression here is expensive to diagnose from the outside.
     func testOutputIsABinaryPlist() throws {
-        let data = try FocusShortcut.plistData(recipe: recipe, focus: work, direction: .on)
-        XCTAssertEqual(String(decoding: data.prefix(6), as: UTF8.self), "bplist")
+        let data = try FocusShortcut.plistData(recipe: recipe, focus: work, direction: .turnOn)
+        let header = try XCTUnwrap(String(bytes: data.prefix(6), encoding: .utf8))
+        XCTAssertEqual(header, "bplist")
     }
 
     func testShippedRecipeDecodesAndMatchesTheFallback() throws {

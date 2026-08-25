@@ -16,7 +16,7 @@ public struct FocusMode: Equatable, Sendable, Identifiable {
 }
 
 public enum FocusShortcutDirection: Sendable {
-    case on, off
+    case turnOn, turnOff
 }
 
 private enum RecipeCodingKeys: String, CodingKey {
@@ -134,13 +134,13 @@ public enum FocusShortcut {
         direction: FocusShortcutDirection
     ) throws -> Data {
         var parameters: [String: Any] = [
-            recipe.parameterKeys.enabled: direction == .on ? 1 : 0,
+            recipe.parameterKeys.enabled: direction == .turnOn ? 1 : 0,
             recipe.parameterKeys.focusModes: [
                 recipe.parameterKeys.modeIdentifier: focus.identifier,
                 recipe.parameterKeys.modeDisplayName: focus.name,
             ],
         ]
-        if direction == .on {
+        if direction == .turnOn {
             parameters[recipe.parameterKeys.assertionType] = recipe.assertionTypeWhenOn
         }
 
