@@ -129,9 +129,15 @@ actor TeamsAccessibilityDetector: MeetingDetector {
         // Element ids and counts are not user data, so they are logged publicly. The meeting
         // title is: it stays redacted so meeting subjects never reach a sysdiagnose.
         let markerList = scan.matchedMarkers.joined(separator: ",")
-        Log.detector.debug("teams scan: verdict \(String(describing: scan.verdict), privacy: .public), nodes \(scan.nodesVisited, privacy: .public), markers [\(markerList, privacy: .public)], hasTitle \(scan.title != nil, privacy: .public)")
+        let verdictName = String(describing: scan.verdict)
+        Log.detector.debug(
+            "verdict=\(verdictName, privacy: .public) nodes=\(scan.nodesVisited, privacy: .public) ids=[\(markerList, privacy: .public)]"
+        )
         if scan.verdict != lastVerdict {
-            Log.state.info("teams verdict \(String(describing: self.lastVerdict), privacy: .public) -> \(String(describing: scan.verdict), privacy: .public), markers [\(markerList, privacy: .public)], nodes \(scan.nodesVisited, privacy: .public)")
+            let previousName = String(describing: lastVerdict)
+            Log.state.info(
+                "verdict \(previousName, privacy: .public) -> \(verdictName, privacy: .public) ids=[\(markerList, privacy: .public)]"
+            )
             lastVerdict = scan.verdict
         }
 

@@ -79,7 +79,7 @@ final class MeetingMonitor {
         observeApplicationTermination()
         startTicking()
         Log.detector.info(
-            "monitoring started, accessibility trusted: \(self.accessibilityTrusted), teams detector: \(self.settings.teamsDetectorEnabled), audio detector: \(self.settings.audioDetectorEnabled)"
+            "monitoring started, accessibility trusted: \(self.accessibilityTrusted, privacy: .public)"
         )
     }
 

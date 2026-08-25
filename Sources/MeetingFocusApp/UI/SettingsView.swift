@@ -15,7 +15,10 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
 
                 Toggle("Microphone activity (all apps)", isOn: $settings.audioDetectorEnabled)
-                Text("Covers Zoom, Slack, Webex and browser meetings with no per-app setup. Coarser: it cannot read a meeting title, and a muted participant may not register.")
+                Text("""
+                    Covers Zoom, Slack, Webex and browser meetings with no per-app setup. Coarser: \
+                    it cannot read a meeting title, and a muted participant may not register.
+                    """)
                     .font(.caption).foregroundStyle(.secondary)
             }
 

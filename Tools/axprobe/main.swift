@@ -29,7 +29,7 @@ func children(_ element: AXUIElement) -> [AXUIElement] {
 
 func windows(of bundleID: String) -> (pid: pid_t, windows: [AXUIElement])? {
     guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first else {
-        FileHandle.standardError.write("\(bundleID) is not running\n".data(using: .utf8)!)
+        FileHandle.standardError.write(Data("\(bundleID) is not running\n".utf8))
         return nil
     }
     let element = AXUIElementCreateApplication(app.processIdentifier)
@@ -37,8 +37,8 @@ func windows(of bundleID: String) -> (pid: pid_t, windows: [AXUIElement])? {
     guard AXUIElementCopyAttributeValue(element, kAXWindowsAttribute as CFString, &value) == .success,
           let list = value as? [AXUIElement]
     else {
-        FileHandle.standardError.write("could not read windows — is Accessibility permission granted?\n"
-            .data(using: .utf8)!)
+        FileHandle.standardError.write(
+            Data("could not read windows — is Accessibility permission granted?\n".utf8))
         return nil
     }
     return (app.processIdentifier, list)

@@ -13,8 +13,8 @@ final class MeetingStateMachineTests: XCTestCase {
         machine = MeetingStateMachine(timeSource: clock) { [self] in events.append($0) }
     }
 
-    private var started: [Meeting] { events.compactMap { if case .started(let m) = $0 { m } else { nil } } }
-    private var ended: [Meeting] { events.compactMap { if case .ended(let m) = $0 { m } else { nil } } }
+    private var started: [Meeting] { events.compactMap { if case .started(let meeting) = $0 { meeting } else { nil } } }
+    private var ended: [Meeting] { events.compactMap { if case .ended(let meeting) = $0 { meeting } else { nil } } }
 
     /// Drives the machine to a confirmed in-meeting state for `subject`.
     private func enterMeeting(subject: String = Subjects.teams, title: String? = "Standup") {

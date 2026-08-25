@@ -97,7 +97,10 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Accessibility permission required")
                 .font(.system(size: 12, weight: .medium))
-            Text("MeetingFocus reads Teams' own window contents to tell whether you are in a meeting. Without this it falls back to microphone activity only.")
+            Text("""
+                MeetingFocus reads Teams' own window contents to tell whether you are in a meeting. \
+                Without this it falls back to microphone activity only.
+                """)
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
             Button("Open Privacy & Security…") {

@@ -28,16 +28,16 @@ final class AutomationCoordinatorTests: XCTestCase {
     }
 
     private var startedTitles: [String?] {
-        commands.compactMap { if case .meetingStarted(let m) = $0 { m.title } else { nil } }
+        commands.compactMap { if case .meetingStarted(let meeting) = $0 { meeting.title } else { nil } }
     }
     private var endedTitles: [String?] {
-        commands.compactMap { if case .meetingEnded(let m) = $0 { m.title } else { nil } }
+        commands.compactMap { if case .meetingEnded(let meeting) = $0 { meeting.title } else { nil } }
     }
 
     // 8 — exactly one call per aggregate edge, regardless of how often we are polled
     func testFiresExactlyOncePerEdge() {
-        let m = meeting("Standup")
-        for _ in 0..<10 { coordinator.update(isInMeeting: true, activeMeeting: m) }
+        let call = meeting("Standup")
+        for _ in 0..<10 { coordinator.update(isInMeeting: true, activeMeeting: call) }
         XCTAssertEqual(commands.count, 1)
 
         for _ in 0..<10 { coordinator.update(isInMeeting: false, activeMeeting: nil) }
@@ -45,7 +45,7 @@ final class AutomationCoordinatorTests: XCTestCase {
 
         clock.advance(46)
         coordinator.tick()
-        XCTAssertEqual(commands, [.meetingStarted(m), .meetingEnded(m)])
+        XCTAssertEqual(commands, [.meetingStarted(call), .meetingEnded(call)])
     }
 
     // 11 — the measured case: two real meetings 12 seconds apart
@@ -91,8 +91,8 @@ final class AutomationCoordinatorTests: XCTestCase {
 
     /// Repeated ticks must not re-fire an end that has already been delivered.
     func testEndIsNotRepeated() {
-        let m = meeting("Standup")
-        coordinator.update(isInMeeting: true, activeMeeting: m)
+        let call = meeting("Standup")
+        coordinator.update(isInMeeting: true, activeMeeting: call)
         coordinator.update(isInMeeting: false, activeMeeting: nil)
         clock.advance(50)
         for _ in 0..<10 { coordinator.tick() }

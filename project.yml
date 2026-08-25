@@ -1,38 +1,35 @@
 name: MeetingFocus
 options:
   bundleIdPrefix: me.mazetti
+  developmentLanguage: en
+  knownRegions:
+    - en
+    - de
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
 packages:
+  # The core is a local SwiftPM package rather than an Xcode framework target, so `swift test` can
+  # run the suite without a test host. See Package.swift.
+  MeetingFocusCore:
+    path: .
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: 2.6.0
 settings:
   base:
+    # XcodeGen's project-level default is 5.0. Set it here so a target added without its own
+    # override cannot silently compile in Swift 5 mode.
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     GENERATE_INFOPLIST_FILE: YES
     DEVELOPMENT_TEAM: TH593VRB6W
+    # Required for notarization; a signature without a secure timestamp is rejected.
     OTHER_CODE_SIGN_FLAGS: "--timestamp"
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
-  MeetingFocusCore:
-    type: framework
-    platform: macOS
-    sources: [Sources/MeetingFocusCore]
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.mazetti.meetingfocus.core
-        ENABLE_HARDENED_RUNTIME: YES
-  MeetingFocusCoreTests:
-    type: bundle.unit-test
-    platform: macOS
-    sources: [Tests/MeetingFocusCoreTests]
-    dependencies:
-      - target: MeetingFocusCore
   MeetingFocus:
     type: application
     platform: macOS
@@ -41,8 +38,8 @@ targets:
       - path: Resources
         buildPhase: resources
     dependencies:
-      - target: MeetingFocusCore
-        embed: true
+      - package: MeetingFocusCore
+        product: MeetingFocusCore
       - package: Sparkle
     settings:
       base:
@@ -53,6 +50,16 @@ targets:
         # An explicit Info.plist rather than INFOPLIST_KEY_* settings: those only support Apple's
         # own known keys, and silently drop third-party ones such as Sparkle's SU* family.
         GENERATE_INFOPLIST_FILE: NO
+        # OFF deliberately, for a hand-authored String Catalog: compiler string extraction rewrites
+        # the *source* Localizable.xcstrings on every build, reordering keys and resetting states.
+        # The catalog is still compiled into the app; keys are reconciled by the xcstrings tool.
+        SWIFT_EMIT_LOC_STRINGS: "NO"
+        # OFF for the same reason, and not optional: XcodeGen's setting presets turn symbol
+        # generation on, and generated symbols cannot coexist with a hand-authored catalog. Keys
+        # that differ only by case or trailing punctuation derive the same Swift symbol, which is a
+        # hard build error. Deduplicating is not the fix — a key must match its Swift literal
+        # character-for-character or the translation silently falls back to the development language.
+        STRING_CATALOG_GENERATE_SYMBOLS: "NO"
     info:
       path: Sources/MeetingFocusApp/Info.plist
       properties:
@@ -60,6 +67,9 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        CFBundleLocalizations:
+          - en
+          - de
         # Driving Shortcuts raises an Automation prompt attributed to this app; without a usage
         # description macOS turns that into a silent denial.
         NSAppleEventsUsageDescription: MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.
@@ -67,13 +77,6 @@ targets:
         SUFeedURL: https://meetingfocus.mazetti.me/appcast.xml
         SUPublicEDKey: PF6+rOJ1fFGZkt/v+OtImnW0UyQvGlRvafdlDWPusOM=
         SUEnableAutomaticChecks: true
-  axprobe:
-    type: tool
-    platform: macOS
-    sources: [Sources/axprobe]
-    settings:
-      base:
-        PRODUCT_NAME: axprobe
 schemes:
   MeetingFocus:
     build:
@@ -81,7 +84,3 @@ schemes:
         MeetingFocus: all
     run:
       config: Debug
-  axprobe:
-    build:
-      targets:
-        axprobe: all

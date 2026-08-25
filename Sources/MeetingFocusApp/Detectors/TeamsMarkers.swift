@@ -6,6 +6,8 @@ import Foundation
 /// can be renamed by any Teams release; keeping them in a resource means a fix is a data change
 /// that can ship in a patch release, and it is the seam that would later allow a remotely
 /// refreshed manifest without redesigning anything.
+private enum MarkerSetCodingKeys: String, CodingKey { case primary, secondary }
+
 struct TeamsMarkers: Decodable, Sendable {
     struct MarkerSet: Decodable, Sendable {
         var primary: [String] = []
@@ -17,13 +19,11 @@ struct TeamsMarkers: Decodable, Sendable {
             self.secondary = secondary
         }
 
-        private enum CodingKeys: String, CodingKey { case primary, secondary }
-
         /// Swift's synthesized `Decodable` does not apply property default values, so a marker set
         /// that legitimately has no secondary entries would fail to decode. Both keys are optional
         /// here so the resource stays readable.
         init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let container = try decoder.container(keyedBy: MarkerSetCodingKeys.self)
             primary = try container.decodeIfPresent([String].self, forKey: .primary) ?? []
             secondary = try container.decodeIfPresent([String].self, forKey: .secondary) ?? []
         }
