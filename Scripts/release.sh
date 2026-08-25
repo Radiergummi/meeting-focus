@@ -21,7 +21,31 @@ REPO="Radiergummi/meeting-focus"
 TEAM_ID="TH593VRB6W"
 FEED_URL="https://meetingfocus.mazetti.me/appcast.xml"
 SKIP_NOTARIZE=0
-[[ "${1:-}" == "--skip-notarize" ]] && SKIP_NOTARIZE=1
+SKIP_APPCAST=0
+for arg in "$@"; do
+    case "$arg" in
+        --skip-notarize) SKIP_NOTARIZE=1 ;;
+        # CI builds and attests the artifact but does not sign the update feed: the Sparkle private
+        # key stays on the maintainer's machine, so the build attestation and the update
+        # authorisation are two independent signatures rather than one key that can do both.
+        --skip-appcast)  SKIP_APPCAST=1 ;;
+        *) echo "unknown argument: $arg" >&2; exit 2 ;;
+    esac
+done
+
+# notarytool takes either a stored keychain profile (local) or an App Store Connect key on disk
+# (CI, where there is no keychain profile to store).
+if [[ -n "${NOTARY_KEY_ID:-}" ]]; then
+    NOTARY_ARGS=(--key "${NOTARY_KEY_PATH:-$HOME/.private_keys/AuthKey_${NOTARY_KEY_ID}.p8}"
+                 --key-id "$NOTARY_KEY_ID"
+                 --issuer "${NOTARY_ISSUER:?NOTARY_ISSUER is required alongside NOTARY_KEY_ID}")
+else
+    NOTARY_ARGS=(--keychain-profile "$PROFILE")
+fi
+
+# Provenance stamped into the bundle, so a copy can say where it came from. The defaults describe
+# a local build honestly rather than claiming a provenance it does not have.
+BUILD_SETTINGS=(MF_BUILD_COMMIT="${MF_BUILD_COMMIT:-local}" MF_BUILD_RUN_URL="${MF_BUILD_RUN_URL:-}")
 
 BUILD_DIR="build"
 ARCHIVE="$BUILD_DIR/MeetingFocus.xcarchive"
@@ -42,7 +66,8 @@ xcodebuild -project MeetingFocus.xcodeproj -scheme MeetingFocusCoreTests \
 step "Archiving"
 rm -rf "$ARCHIVE" "$EXPORT_DIR" "$STAGE"
 xcodebuild -project MeetingFocus.xcodeproj -scheme MeetingFocus \
-    -configuration Release -archivePath "$ARCHIVE" archive | tail -3
+    -configuration Release -archivePath "$ARCHIVE" \
+    "${BUILD_SETTINGS[@]}" archive | tail -3
 
 step "Exporting with Developer ID"
 xcodebuild -exportArchive -archivePath "$ARCHIVE" \
@@ -67,7 +92,7 @@ grep -q 'Timestamp=' <<<"$SIGN_INFO" \
 
 if [[ $SKIP_NOTARIZE -eq 0 ]]; then
     step "Notarizing the app (this waits on Apple, usually a few minutes)"
-    if ! xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null 2>&1; then
+    if ! xcrun notarytool history "${NOTARY_ARGS[@]}" >/dev/null 2>&1; then
         cat >&2 <<EOF
 No notarization credentials found for keychain profile "$PROFILE".
 Create them once with:
@@ -82,7 +107,7 @@ EOF
     fi
     ZIP="$BUILD_DIR/MeetingFocus-notarize.zip"
     ditto -c -k --keepParent "$APP" "$ZIP"
-    xcrun notarytool submit "$ZIP" --keychain-profile "$PROFILE" --wait
+    xcrun notarytool submit "$ZIP" "${NOTARY_ARGS[@]}" --wait
     # Staple the app itself, so it stays trusted once dragged out of the disk image.
     xcrun stapler staple "$APP"
     rm -f "$ZIP"
@@ -108,8 +133,14 @@ codesign --force --sign "$IDENTITY" --timestamp "$DMG"
 
 if [[ $SKIP_NOTARIZE -eq 0 ]]; then
     step "Notarizing the disk image"
-    xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait
+    xcrun notarytool submit "$DMG" "${NOTARY_ARGS[@]}" --wait
     xcrun stapler staple "$DMG"
+fi
+
+if [[ $SKIP_APPCAST -eq 1 ]]; then
+    step "Done (appcast skipped)"
+    echo "disk image: $DMG"
+    exit 0
 fi
 
 step "Generating the Sparkle appcast"

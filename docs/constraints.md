@@ -204,3 +204,19 @@ App Store SKU is not distributable while that licence applies.
 dual-license at will — but only while they hold copyright to all of the code. Accepting outside
 contributions without a contributor licence agreement would end that, making the App Store option
 genuinely unreachable. Decide on a CLA before the first external pull request, not after.
+
+### C7. Dependabot cannot see the Sparkle dependency
+
+Dependabot's `swift` ecosystem reads `Package.swift`. Sparkle is declared in `project.yml` for the
+Xcode app target, because the app is not a SwiftPM target, so it falls outside what Dependabot
+scans. `github-actions` is covered; Swift packages are covered only for `MeetingFocusCore`, which
+deliberately has none.
+
+**Corners us?** No. The fix would be to declare Sparkle as a dependency of `MeetingFocusCore` so it
+appears in the manifest — which is worse: the core is deliberately free of platform APIs and
+dependencies so `swift test` stays instant and the logic stays portable. Pulling an updater
+framework into it to satisfy a scanner inverts that.
+
+So Sparkle's version is bumped by hand. It is pinned by the committed `Package.resolved`, and the
+release workflow would fail loudly on an incompatible bump, so the exposure is a missed update
+rather than a silent one. Worth checking its releases when touching the updater.

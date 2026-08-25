@@ -165,6 +165,52 @@ seeds from the published appcast so earlier versions keep their entries.
 - [`docs/constraints.md`](docs/constraints.md) — platform constraints and which of them are
   load-bearing
 
+## Trust: what this build is, and how to check it
+
+This app reads other applications' window contents and watches which processes use your
+microphone. "Is it spying on me?" is a fair question, and the answer should be checkable rather
+than merely asserted.
+
+**Releases are built in public.** Every release is produced by a
+[GitHub Actions run](.github/workflows/release.yml) from a public commit on a disposable runner —
+never on a developer machine — and that run records a signed
+[build provenance attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations)
+over the exact artifact published.
+
+Verify a download before trusting it:
+
+```sh
+shasum -a 256 MeetingFocus-0.1.0.dmg          # compare against the release notes
+gh attestation verify MeetingFocus-0.1.0.dmg --repo Radiergummi/meeting-focus
+```
+
+An already-installed copy can be traced too: **Settings → This build** shows the commit and links
+to the build log that produced it.
+
+**This is verifiable provenance, not a reproducible build.** Xcode output is not deterministic —
+timestamps, code signing and link order all vary — so rebuilding will not produce a byte-identical
+file, and any project claiming otherwise for a Swift app deserves a second look. What is proven is
+*which source and which public build* produced the artifact you hold.
+
+**Two independent keys, on purpose.** GitHub attests the build; the maintainer signs the Sparkle
+update feed with a key that never leaves their machine. Neither a compromised CI nor a stolen
+laptop is on its own sufficient to ship you code.
+
+### What it reads, and what it sends
+
+- **Reads:** window titles and accessibility element ids of Microsoft Teams, and which processes
+  are currently capturing the microphone. Nothing else, and no window contents beyond those.
+- **Sends:** nothing, with one exception — the update check fetches
+  `https://meetingfocus.mazetti.me/appcast.xml`. No telemetry, no analytics, no account, no crash
+  reporting.
+- **Stores:** settings in `UserDefaults`. No database, no meeting history.
+- **Logs:** meeting titles are marked private in the unified log, so they do not reach a
+  sysdiagnose. Element ids and counts are logged publicly.
+
+Accessibility is the only permission requested. No Screen Recording, Microphone or Camera
+permission — the microphone check asks CoreAudio *which processes* are capturing, and never opens
+an input stream.
+
 ## Licence
 
 Copyright © 2026 Moritz Friedrich. Licensed under the

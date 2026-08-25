@@ -1,0 +1,118 @@
+name: Release
+
+# Tag-triggered, and the only path that produces a build anyone else runs.
+#
+# The point is not convenience — it is that a binary built on a laptop is unverifiable by anyone
+# but its author. This workflow builds from a public commit on a disposable runner, records a
+# signed build provenance attestation over the artifact, and publishes the run URL inside the app
+# itself. Anyone can then check that the download they hold came from the source they just read.
+#
+# Trust boundaries kept deliberately separate:
+#   * GitHub attests the BUILD  — proof of what source produced this artifact.
+#   * The maintainer signs the UPDATE — the Sparkle EdDSA key never leaves their machine, so a
+#     compromised CI cannot authorise an update, and a compromised laptop cannot forge provenance.
+# The release is created as a draft for that reason: a human publishes it, and only then is the
+# update feed signed locally with `make publish`.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  XCODE_VERSION: "26.6"
+
+jobs:
+  release:
+    name: Build, notarize and attest
+    runs-on: macos-26
+    timeout-minutes: 45
+    permissions:
+      contents: write      # create the draft release
+      id-token: write      # mint the OIDC token the attestation is bound to
+      attestations: write  # record the provenance attestation
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+
+      - run: brew install xcodegen swiftlint
+
+      # Gates before anything is signed: a release that fails its own checks should never exist as
+      # a signed artifact at all, because a signed artifact is one somebody might install.
+      - name: Lint
+        run: swiftlint lint --strict --reporter github-actions-logging
+
+      - name: Test
+        run: swift test
+
+      - name: Install signing material
+        env:
+          SIGNING_DATA: ${{ secrets.SIGNING_DATA }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          APPLE_API_KEY_DATA: ${{ secrets.APPLE_API_KEY_DATA }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: ./.github/scripts/signing.sh
+
+      # The version in the tag is the version that ships; deriving it here means the tag and the
+      # bundle cannot disagree.
+      - name: Derive version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          PLIST_VERSION=$(grep -m1 'MARKETING_VERSION:' project.yml | sed 's/.*"\(.*\)".*/\1/')
+          if [[ "$VERSION" != "$PLIST_VERSION" ]]; then
+            echo "tag $GITHUB_REF_NAME does not match MARKETING_VERSION $PLIST_VERSION in project.yml" >&2
+            exit 1
+          fi
+
+      - name: Build, notarize and package
+        env:
+          NOTARY_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          MF_BUILD_COMMIT: ${{ github.sha }}
+          MF_BUILD_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CURRENT_PROJECT_VERSION: ${{ github.run_number }}
+        # --skip-appcast: the update feed is signed by the maintainer, not by CI. See the header.
+        run: ./Scripts/release.sh --skip-appcast
+
+      - name: Checksum
+        id: checksum
+        run: |
+          DMG="build/MeetingFocus-${{ steps.version.outputs.version }}.dmg"
+          echo "dmg=$DMG" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(shasum -a 256 "$DMG" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      # Binds this exact artifact to this exact commit, workflow and run, verifiable by anyone with
+      # `gh attestation verify`. This is the claim that makes "built from the source you read"
+      # checkable rather than merely stated.
+      - name: Attest build provenance
+        id: attest
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ steps.checksum.outputs.dmg }}
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.checksum.outputs.sha256 }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
+          COMMIT: ${{ github.sha }}
+          DMG: ${{ steps.checksum.outputs.dmg }}
+        run: |
+          NOTES=$(mktemp)
+          sed -e "s|VERSION_PLACEHOLDER|$VERSION|g" \
+              -e "s|SHA256_PLACEHOLDER|$SHA256|g" \
+              -e "s|RUN_URL_PLACEHOLDER|$RUN_URL|g" \
+              -e "s|ATTESTATION_URL_PLACEHOLDER|$ATTESTATION_URL|g" \
+              -e "s|COMMIT_PLACEHOLDER|$COMMIT|g" \
+              .github/templates/release.md > "$NOTES"
+          gh release create "$GITHUB_REF_NAME" "$DMG" \
+            --draft --title "MeetingFocus $VERSION" --notes-file "$NOTES"
+          echo "draft release created — publish it, then run 'make publish' locally to sign the feed"

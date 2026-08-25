@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push supersedes an in-flight run for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Pinned rather than trusting the image default, so the compiler cannot change under the build
+  # without the change being visible here. When GitHub retires this version the select step fails
+  # loudly instead of drifting silently.
+  XCODE_VERSION: "26.6"
+
+jobs:
+  lint:
+    name: SwiftLint
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - run: brew install swiftlint
+      - run: swiftlint lint --strict --reporter github-actions-logging
+
+  test:
+    name: Core tests
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+      - run: swift --version
+      # MeetingFocusCore is SwiftPM and has no dependencies, so this needs no signing, no
+      # provisioning and no Xcode project — which is the whole reason the logic lives there.
+      - run: swift test
+
+  build:
+    name: Build app
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      # Signing is skipped: a pull request from a fork has no access to the signing secrets, and a
+      # compile failure is what this job exists to catch. The release workflow signs for real.
+      - name: Build
+        run: |
+          xcodebuild -project MeetingFocus.xcodeproj -scheme MeetingFocus \
+            -configuration Debug -derivedDataPath ./.build-xcode \
+            -destination 'platform=macOS,arch=arm64' \
+            -skipMacroValidation -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO build
+      # The markers resource has silently failed to decode before, leaving the app on hardcoded
+      # ids. Checking the built bundle is cheap and catches it without needing to run the app.
+      - name: Verify bundle resources
+        run: |
+          APP=./.build-xcode/Build/Products/Debug/MeetingFocus.app
+          plutil -convert json -o /dev/null "$APP/Contents/Resources/teams-markers.json"
+          for key in SUFeedURL SUPublicEDKey LSUIElement NSAppleEventsUsageDescription; do
+            /usr/libexec/PlistBuddy -c "Print :$key" "$APP/Contents/Info.plist" >/dev/null
+          done
+          echo "bundle resources and Info.plist keys present"

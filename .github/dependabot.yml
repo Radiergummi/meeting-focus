@@ -1,0 +1,46 @@
+version: 2
+
+# Grouped so a routine bump is one pull request to review rather than several, and split
+# development/production because the two carry different risk: a build-time tool that breaks fails
+# CI loudly, while a shipped dependency changes what users run.
+#
+# The cooldown holds every update for three days after publication. Freshly published versions are
+# where compromised releases and same-day yanks show up, and nothing here is urgent enough to be
+# worth being first.
+updates:
+  # Everything in a workflow is build-time tooling by nature, so there is no production half to
+  # separate out — but pinning matters just as much: an action runs with access to the signing
+  # secrets and the attestation token.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns: ["*"]
+    labels: [dependencies, ci]
+    commit-message:
+      prefix: "ci"
+
+  # Swift packages. Note the gap: this tracks Package.swift, and MeetingFocusCore deliberately has
+  # no dependencies. Sparkle is declared in project.yml for the Xcode app target, which Dependabot
+  # does not read — see docs/constraints.md.
+  - package-ecosystem: swift
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      production:
+        applies-to: version-updates
+        dependency-type: production
+      development:
+        applies-to: version-updates
+        dependency-type: development
+    labels: [dependencies]
+    commit-message:
+      prefix: "deps"

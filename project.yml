@@ -29,6 +29,12 @@ settings:
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
+    # Build provenance. Defaults describe a local build honestly; the release workflow overrides
+    # them on the xcodebuild command line so a released bundle names the commit and public build
+    # log it came from. A binary that cannot say where it came from cannot be checked.
+    MF_BUILD_COMMIT: local
+    MF_BUILD_RUN_URL: ""
+
 targets:
   MeetingFocus:
     type: application
@@ -77,6 +83,8 @@ targets:
         SUFeedURL: https://meetingfocus.mazetti.me/appcast.xml
         SUPublicEDKey: PF6+rOJ1fFGZkt/v+OtImnW0UyQvGlRvafdlDWPusOM=
         SUEnableAutomaticChecks: true
+        MFBuildCommit: $(MF_BUILD_COMMIT)
+        MFBuildRunURL: $(MF_BUILD_RUN_URL)
 schemes:
   MeetingFocus:
     build:

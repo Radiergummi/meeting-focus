@@ -27,6 +27,10 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>MFBuildCommit</key>
+	<string>$(MF_BUILD_COMMIT)</string>
+	<key>MFBuildRunURL</key>
+	<string>$(MF_BUILD_RUN_URL)</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.</string>
 	<key>SUEnableAutomaticChecks</key>

@@ -88,6 +88,34 @@ struct SettingsView: View {
                 }
             }
 
+            Section("This build") {
+                LabeledContent("Version", value: BuildInfo.summary)
+                if BuildInfo.isOfficialBuild, let url = BuildInfo.buildRunURL {
+                    HStack {
+                        Text("Built publicly from source")
+                        Spacer()
+                        Link("View build log", destination: url)
+                    }
+                    Text("""
+                        This copy was built by a public GitHub Actions run from the commit above, and \
+                        that run recorded a signed provenance attestation over the artifact. You can \
+                        check it yourself:
+                        """)
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text(BuildInfo.verificationCommand)
+                        .font(.system(size: 11, design: .monospaced))
+                        .textSelection(.enabled)
+                } else {
+                    Text("Locally built — no public build log or attestation for this copy.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Source code")
+                    Spacer()
+                    Link("GitHub", destination: BuildInfo.repositoryURL)
+                }
+            }
+
             Section("Diagnostics") {
                 Toggle("Debug mode (show recent detections in the menu)", isOn: $settings.debugMode)
             }
