@@ -164,6 +164,7 @@ seeds from the published appcast so earlier versions keep their entries.
 - [`docs/architecture.md`](docs/architecture.md) — structure and extension points
 - [`docs/constraints.md`](docs/constraints.md) — platform constraints and which of them are
   load-bearing
+- [`docs/BACKLOG.md`](docs/BACKLOG.md) — what is outstanding, and why each item matters
 
 ## Trust: what this build is, and how to check it
 
