@@ -154,3 +154,19 @@ seeds from the published appcast so earlier versions keep their entries.
 - [`docs/architecture.md`](docs/architecture.md) — structure and extension points
 - [`docs/constraints.md`](docs/constraints.md) — platform constraints and which of them are
   load-bearing
+
+## Licence
+
+Copyright © 2026 Moritz Friedrich. Licensed under the
+[GNU Affero General Public License v3.0](LICENSE).
+
+Chosen as a deliberately restrictive copyleft licence: derivative works must stay under the same
+terms. Note two consequences worth being aware of:
+
+- **AGPL is incompatible with Mac App Store distribution.** Its terms conflict with the App Store's,
+  so this licence closes that door for as long as it applies. That option was already deferred
+  indefinitely (see [`docs/constraints.md`](docs/constraints.md)), and the copyright holder can
+  relicense at any time — but only while they hold copyright to all of the code.
+- **Outside contributions would complicate relicensing.** Accepting patches without a contributor
+  licence agreement means no single party can relicense afterwards. Worth deciding before the first
+  external pull request, not after.

@@ -173,7 +173,7 @@ Recorded so nobody treats them as closed doors.
 
 | Deferred | Still reversible because |
 |---|---|
-| App Store / sandboxed SKU | audio tier measured working under sandbox; evidence model supports detector subsets |
+| App Store / sandboxed SKU | audio tier measured working under sandbox; evidence model supports detector subsets. **But see C6 — the AGPL licence now blocks this until relicensed** |
 | iOS app | not needed for the use case — Focus syncs across devices, so the Mac silences the iPhone |
 | Provider OAuth tiers | evidence model already accepts corroborating, high-latency, user-scoped evidence |
 | Zoom / Slack / browser AX detectors | purely additive; each is one detector plus a marker study |
@@ -194,3 +194,13 @@ Recorded so nobody treats them as closed doors.
    keep the lobby state for the UI only. A 26-second lobby was measured, so firing automation there
    would enable Focus before the user has actually joined.
 4. **Is Graph's `InAMeeting` calendar-derived?** Gates the provider tier (M2), not M1.
+
+### C6. AGPL-3.0 closes the App Store door
+
+The project is licensed AGPL-3.0, whose terms conflict with the Mac App Store's, so a sandboxed
+App Store SKU is not distributable while that licence applies.
+
+**Corners us?** Not permanently, and only by choice. The copyright holder can relicense or
+dual-license at will — but only while they hold copyright to all of the code. Accepting outside
+contributions without a contributor licence agreement would end that, making the App Store option
+genuinely unreachable. Decide on a CLA before the first external pull request, not after.
