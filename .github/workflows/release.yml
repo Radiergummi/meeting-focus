@@ -34,7 +34,7 @@ jobs:
       id-token: write      # mint the OIDC token the attestation is bound to
       attestations: write  # record the provenance attestation
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Select Xcode ${{ env.XCODE_VERSION }}
         run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
@@ -92,7 +92,7 @@ jobs:
       # checkable rather than merely stated.
       - name: Attest build provenance
         id: attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: ${{ steps.checksum.outputs.dmg }}
 
