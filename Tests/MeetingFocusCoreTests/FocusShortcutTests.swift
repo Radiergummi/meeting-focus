@@ -65,3 +65,37 @@ final class FocusShortcutTests: XCTestCase {
         XCTAssertEqual(decoded.assertionTypeWhenOn, FocusShortcutRecipe.fallback.assertionTypeWhenOn)
     }
 }
+
+/// The Focus list comes from `~/Library/DoNotDisturb/DB/ModeConfigurations.json`, a private file
+/// with no documented schema. Parsing it is where a macOS change lands first, so the shape is
+/// pinned to a fixture rather than to whatever the developer's own Mac happens to hold.
+final class FocusModeParsingTests: XCTestCase {
+    private let sample = Data("""
+    {"data": [{"modeConfigurations": {
+      "com.apple.focus.work": {"mode": {"name": "Arbeiten", "modeIdentifier": "com.apple.focus.work"}},
+      "com.apple.donotdisturb.mode.default": {"mode": {"name": "Nicht stören"}},
+      "com.apple.sleep.sleep-mode": {"mode": {"name": "Schlafen"}}
+    }}]}
+    """.utf8)
+
+    func testReadsEveryConfiguredFocusSortedByName() {
+        let modes = FocusMode.parse(modeConfigurations: sample)
+        XCTAssertEqual(modes.map(\.name), ["Arbeiten", "Nicht stören", "Schlafen"])
+        XCTAssertEqual(modes.first?.identifier, "com.apple.focus.work")
+    }
+
+    /// A private file that has moved or changed shape must read as "no Focus modes", which the
+    /// focus step degrades on — never as a crash and never as a half-parsed list.
+    func testUnexpectedShapesYieldNothing() {
+        XCTAssertTrue(FocusMode.parse(modeConfigurations: Data("not json".utf8)).isEmpty)
+        XCTAssertTrue(FocusMode.parse(modeConfigurations: Data("{}".utf8)).isEmpty)
+        XCTAssertTrue(FocusMode.parse(modeConfigurations: Data(#"{"data": []}"#.utf8)).isEmpty)
+    }
+
+    /// An entry with no display name cannot be offered in a picker, so it is dropped rather than
+    /// shown with its raw identifier.
+    func testEntriesWithoutANameAreDropped() {
+        let json = Data(#"{"data":[{"modeConfigurations":{"a.b.c":{"mode":{}}}}]}"#.utf8)
+        XCTAssertTrue(FocusMode.parse(modeConfigurations: json).isEmpty)
+    }
+}

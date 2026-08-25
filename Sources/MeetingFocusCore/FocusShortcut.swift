@@ -169,3 +169,30 @@ public enum FocusShortcut {
         return try PropertyListSerialization.data(fromPropertyList: workflow, format: .binary, options: 0)
     }
 }
+
+public extension FocusMode {
+    /// Reads DoNotDisturb's own configuration file. Private and undocumented, so every step is
+    /// optional and an unreadable file yields an empty list rather than an error: the caller's
+    /// fallback is to offer the manual route, which is a better outcome than a failure dialog.
+    ///
+    /// Shape, as observed on macOS 26:
+    ///
+    ///     { "data": [ { "modeConfigurations": {
+    ///         "<identifier>": { "mode": { "name": "<display name>" } } } } ] }
+    static func parse(modeConfigurations data: Data) -> [FocusMode] {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let entries = root["data"] as? [[String: Any]],
+              let configurations = entries.first?["modeConfigurations"] as? [String: Any]
+        else { return [] }
+
+        return configurations.compactMap { identifier, value in
+            guard let configuration = value as? [String: Any],
+                  let mode = configuration["mode"] as? [String: Any],
+                  let name = mode["name"] as? String,
+                  !name.isEmpty
+            else { return nil }
+            return FocusMode(identifier: identifier, name: name)
+        }
+        .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+}
