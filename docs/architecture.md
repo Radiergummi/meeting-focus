@@ -44,13 +44,15 @@ and cancels it if a new meeting begins.
 
 | Path | Contents |
 |---|---|
-| `Sources/MeetingFocusCore` | `Meeting`, `MeetingEvidence`, `EvidenceFusion`, `MeetingStateMachine`, `AutomationCoordinator`, protocols. Pure logic, no platform APIs |
+| `Sources/MeetingFocusCore` | `Meeting`, `MeetingEvidence`, `EvidenceFusion`, `MeetingStateMachine`, `AutomationCoordinator`, `FocusShortcut`, protocols. Pure logic, no platform APIs |
 | `Sources/MeetingFocusApp/Detectors` | `TeamsAccessibilityDetector`, `AudioProcessDetector`, `BundleIdentifierResolver`, marker loading |
 | `Sources/MeetingFocusApp/Accessibility` | `AXElement` wrapper, permission handling, `AXChangeObserver` |
-| `Sources/MeetingFocusApp/Automation` | `ShortcutsAutomationHandler` |
+| `Sources/MeetingFocusApp/Automation` | `ShortcutsAutomationHandler`, `FocusShortcutInstaller` |
 | `Sources/MeetingFocusApp/UI` | `MenuBarView`, `SettingsView` |
+| `Sources/MeetingFocusApp/UI/Onboarding` | `OnboardingView`, `OnboardingFocusStep` — the first-run window that installs the Focus shortcuts |
 | `Sources/MeetingFocusApp` | `MeetingMonitor` (wiring), `AppSettings`, app entry |
 | `Resources/teams-markers.json` | Teams element ids, as data so they can be patched |
+| `Resources/focus-shortcut.json` | The Set Focus action's identifier and parameter shape, as data so they can be patched |
 
 ## Extension points
 
@@ -75,6 +77,12 @@ webhook or shell backend is additive.
 Note that there is **no public API to set a Focus mode** on macOS. `INFocusStatusCenter` is
 read-only. Shortcuts is the only supported route, which is why it is the first backend rather
 than a convenience.
+
+The Shortcuts backend now also *generates and installs* the shortcut it later runs, rather than
+asking the user to author one by hand: `Automation/FocusShortcutInstaller.swift` builds a plist
+from `Resources/focus-shortcut.json`, signs it with the user's own copy of `/usr/bin/shortcuts`,
+and hands it to Shortcuts for the one confirmation macOS requires. See `docs/constraints.md` A4 and
+C4 for why the recipe has no Focus name baked in.
 
 ### Adding a remote presence source
 

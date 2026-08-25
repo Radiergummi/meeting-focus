@@ -15,8 +15,9 @@ actually corners us.
 Shortcuts is the *only* supported route to changing Focus.
 
 **Corners us?** No, but it caps the product: we can never be more than a trigger for a Shortcut.
-The mitigation (bundled `.shortcut` + one-click install) removes the authoring burden, not the
-dependency. Marketing must promise "triggers your automations", never "controls Focus directly".
+The mitigation (onboarding generates, signs and installs the shortcut) removes the authoring
+burden, not the dependency. Marketing must promise "triggers your automations", never "controls
+Focus directly".
 
 ### A2. `AXDOMIdentifier` values are Teams' internal HTML ids
 Microsoft can rename them in any release with no warning and no deprecation path.
@@ -30,6 +31,25 @@ translated.
 
 **Corners us?** No — already designed around. Worth restating because it is easy to regress:
 any future detector must be reviewed for string matching.
+
+### A4. No API enumerates the user's Focus modes
+`INFocusStatusCenter` only reports whether *a* Focus is currently active, and needs the
+Communication Notifications capability even for that. The only source that lists Focus modes by
+name is `~/Library/DoNotDisturb/DB/ModeConfigurations.json`, which is TCC-protected: reading it
+needs **Full Disk Access**, the broadest permission macOS grants. Full Disk Access cannot be
+requested programmatically — the user must add the app by hand in System Settings.
+
+Found the expensive way: during the design spike the file was read successfully from a shell that
+happened to already hold Full Disk Access, and the spec generalised from that one read to
+"readable, no prompt, no API" — a Focus picker was designed on that premise. The app itself cannot
+read it. Its own unified log says so: `no Focus configuration file at
+/Users/moritz/Library/DoNotDisturb/DB/ModeConfigurations.json`. Anything verified from a
+privileged shell must be re-verified from the app's own process before it becomes a design
+assumption.
+
+**Corners us?** It caps what onboarding can offer, not the architecture. MeetingFocus installs a
+shortcut that targets Do Not Disturb and tells the user how to retarget it; the user's own Focus
+modes remain reachable to *them* inside Shortcuts, just not enumerable by *us*.
 
 ---
 
@@ -99,11 +119,19 @@ depends on this working smoothly.
 
 **Corners us?** Only the onboarding story, not the architecture.
 
-**Resolved by not relying on it.** Rather than ship an import step that may silently fail, setup is
-documented explicitly in the README and Settings links straight to the Shortcuts app, while the
-shortcut pickers are populated from `shortcuts list` so the user selects a real shortcut instead of
-typing a name that might not exist. If a one-click path is wanted later, an iCloud shortcut share
-link is trusted by construction and needs no bundled file.
+**Resolved: nothing is ever bundled.** The shortcut is generated on the user's own machine and
+signed there, by the user's own copy of Apple's tool, `/usr/bin/shortcuts sign --mode anyone`. No
+bundled-file trust question arises at all, because no unsigned file is ever shipped.
+
+Two mechanics behind that, both found by hitting them, and both producing the *same* unhelpful
+error ("The file couldn't be opened because it isn't in the correct format"):
+
+1. the input must be a **binary** plist — an XML plist is rejected outright;
+2. the input **filename** must end in **`.shortcut`**, regardless of the file's actual contents.
+
+Worth one more line: the imported shortcut takes its **name from the filename**, which is why the
+installer writes the plist to a path already named as the shortcut should be named, rather than
+renaming afterwards.
 
 ### C5. Automation permission for driving Shortcuts
 Spawning `/usr/bin/shortcuts` may raise an Automation TCC prompt attributed to MeetingFocus. A
@@ -189,11 +217,10 @@ Recorded so nobody treats them as closed doors.
    covers Zoom, Slack, Meet and Discord correctly with no per-app work. Strong prior that it does
    *not* release it, since both Teams and Zoom ship a "you're muted, we can hear you talking"
    prompt, which requires capturing while muted.
-2. **Is the bundled `.shortcut` trusted?** (C4) Gates the onboarding promise.
-3. **Does `joining` count as in-meeting for automation?** Product decision. Recommendation: no —
+2. **Does `joining` count as in-meeting for automation?** Product decision. Recommendation: no —
    keep the lobby state for the UI only. A 26-second lobby was measured, so firing automation there
    would enable Focus before the user has actually joined.
-4. **Is Graph's `InAMeeting` calendar-derived?** Gates the provider tier (M2), not M1.
+3. **Is Graph's `InAMeeting` calendar-derived?** Gates the provider tier (M2), not M1.
 
 ### C6. AGPL-3.0 closes the App Store door
 

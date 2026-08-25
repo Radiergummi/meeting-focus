@@ -1,5 +1,14 @@
 # Onboarding flow with one-click Focus setup — design
 
+> **Correction, added after landing:** the Focus list is not readable without Full Disk Access, so
+> the picker this design describes below was never built. What shipped instead: the shortcut ships
+> with no `FocusModes` parameter at all, which Shortcuts renders as a complete, valid action
+> targeting Do Not Disturb, with the Focus name as a token the user can retarget themselves. The
+> "readable … no prompt, no API" claim in "What the spike established" below came from reading the
+> file in a shell that already held Full Disk Access, not from the app — the app cannot read it.
+> See `docs/constraints.md` A4 for the full account. The rest of this document is left as written;
+> it is a record of what was believed when the work started.
+
 Backlog item 9, plus the prerequisite that blocks backlog item 4. Supersedes the reasoning recorded
 in `constraints.md` C4 and open question F2.
 

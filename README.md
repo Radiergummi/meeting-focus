@@ -74,21 +74,28 @@ MeetingFocus cannot change your Focus mode directly. **No public macOS API exist
 `INFocusStatusCenter` can only *read* whether a Focus is active. Shortcuts is the only supported
 route, which is why it is the automation backend rather than a convenience.
 
-One-time setup:
+**Onboarding does this for you.** The first-run window (reopen it any time from the menu bar —
+**Set Up MeetingFocus…**) generates two shortcuts, signs them on your own machine with your own
+copy of `/usr/bin/shortcuts sign --mode anyone`, and selects them as the start and end automation.
+Both shortcuts target **Do Not Disturb**: there is no way to read your own Focus modes without
+granting the app Full Disk Access, the broadest permission macOS has, so the app cannot offer a
+picker (see [`docs/constraints.md`](docs/constraints.md) A4). If you'd rather it drive a different
+Focus, open either installed shortcut in Shortcuts afterwards and tap the Focus name — it is a
+normal, editable token, not something the app hardcodes.
+
+Because Focus syncs between Apple devices, this also silences your iPhone for the duration of the
+call — no iOS app required.
+
+### Manual setup
+
+The same result, built by hand — for skipping onboarding, or wanting a Focus other than Do Not
+Disturb from the start:
 
 1. Open **Shortcuts** and create a shortcut named e.g. `Meeting Started`.
 2. Add the **Set Focus** action and choose the Focus you want (Do Not Disturb, Work, …), set to
    **On**.
 3. Create a second shortcut, e.g. `Meeting Ended`, with **Set Focus** set to **Off**.
 4. In MeetingFocus → Settings, pick those two shortcuts from the dropdowns.
-
-Because Focus syncs between Apple devices, this also silences your iPhone for the duration of the
-call — no iOS app required.
-
-A prepared shortcut is deliberately *not* bundled with the app. macOS treats shortcut files from
-unidentified sources as untrusted, so importing one is not reliably a single click, and a setup
-step that sometimes silently fails is worse than one that is explicit. If that changes, the
-cleanest route would be an iCloud shortcut share link, which is trusted by construction.
 
 ## When detection breaks
 

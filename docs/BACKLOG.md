@@ -58,11 +58,11 @@ one real call:
 /usr/bin/log stream --level debug --predicate 'subsystem == "me.mazetti.meetingfocus"'
 ```
 
-**Prerequisite, or the shortcut half cannot fire:** `startShortcutName` and `endShortcutName` are
-both empty in `UserDefaults`, so `ShortcutsAutomationHandler` logs "no shortcut configured,
-skipping" and returns. Pick a shortcut in Settings → Automation first — `Fokus festlegen` exists on
-the development machine. Turning on Settings → Diagnostics → Debug mode also makes each detection
-visible in the menu while the call runs.
+Onboarding now sets `startShortcutName` and `endShortcutName` itself — it installs and selects both
+Do Not Disturb shortcuts before the user ever reaches Settings, which is what this item used to name
+as the blocking prerequisite. What remains is holding one real meeting and watching the log. Turning
+on Settings → Diagnostics → Debug mode also makes each detection visible in the menu while the call
+runs.
 
 Accessibility is granted: `me.mazetti.meetingfocus` carries `auth_value = 2` for
 `kTCCServiceAccessibility`, so nothing is blocked on permission.
@@ -117,10 +117,13 @@ There is no asset catalogue and no `ASSETCATALOG_COMPILER_APPICON_NAME`, so the 
 generic placeholder icon in Finder, Login Items and the update dialog. The menu bar itself uses an
 SF Symbol and is fine.
 
-### 9. Bundled Focus shortcut, if a one-click path is wanted
-Currently documented as manual setup, deliberately: macOS treats shortcut files from unidentified
-sources as untrusted, so an import step is not reliably one click. If revisited, an iCloud shortcut
-share link is trusted by construction and needs no bundled file.
+### 9. One-click Focus setup — shipped
+A four-step onboarding window now installs two locally signed Do Not Disturb shortcuts and selects
+them automatically, so a fresh installation reaches working automation without the user ever
+authoring a shortcut or typing a name. The reason this was deferred — macOS treats shortcut files
+from unidentified sources as untrusted — no longer holds: the shortcut is generated and signed on
+the user's own machine, so nothing unsigned is ever shipped and there is no bundled file to trust.
+See `constraints.md` A4 and C4.
 
 ---
 
@@ -190,3 +193,42 @@ One thing worth revisiting inside the default setup, which is configurable witho
 `threat_model: remote` is the wrong model for a desktop app that opens no listening socket. The
 local threat model is the one that fits what this app actually does — read other processes' UI and
 run a user-named shortcut.
+
+---
+
+## P5 — Surfaced while building onboarding, not fixed
+
+Onboarding (item 9) is what put working automation in front of a new user for the first time, and
+in doing so it surfaced gaps nothing had exercised before. None of these blocked shipping it; each
+needs its own reason recorded so it does not get done for the wrong one.
+
+### 17. `MeetingMonitor.restart()` is never called
+Toggling a detector in Settings does not take effect until the app relaunches — `restart()` exists
+but nothing calls it. Pre-existing, not introduced by onboarding, but it is why onboarding has no
+detector step: a toggle that silently does nothing until relaunch is worse than no toggle at all.
+Fix this before adding one.
+
+### 18. `defaultAudioAllowlist` is a hardcoded Swift constant
+Covering a new meeting app in the audio tier needs an app release, not a data change —
+`MeetingMonitor.swift` holds the allowlist inline. C2 externalised the Teams markers to
+`Resources/teams-markers.json` for exactly this reason: a fix should be a data change, not a code
+change. This list arguably belongs in the same patchable seam.
+
+### 19. The generated shortcut's name doubles as its identifier
+It is localized, and it is what gets stored in `startShortcutName` / `endShortcutName` and passed
+to `shortcuts run`. Automation survives a system-language change, because the stored name is
+written once and read back rather than re-derived — but re-running onboarding after changing the
+system language will not recognise the existing pair under their new-language names and will
+install a duplicate. Fix by storing identity separately from the display name shown in Shortcuts.
+
+### 20. Retrying a partly-failed install can leave a numbered duplicate
+`OnboardingFocusStep.install()` retries both directions from scratch, with no record of which one
+already succeeded. A timeout on one direction followed by a retry produced `MeetingFocus – Fokus
+aus 1` in Shortcuts during testing. Harmless — `ShortcutsAutomationHandler` binds on exact name, so
+the duplicate never gets picked — but it clutters the shortcut library and asks the user to confirm
+an Add they already gave once.
+
+### 21. TipKit for the menu bar icon
+Apple's own onboarding guidance names TipKit as the recommended alternative to a single onboarding
+flow, and a tip anchored to the actual menu bar icon is a more native answer to "where did the app
+go?" than a sentence in the final onboarding step.
