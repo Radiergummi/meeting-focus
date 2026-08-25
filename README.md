@@ -68,6 +68,28 @@ That wait matters. Back-to-back meetings are normal — a 12-second gap between 
 was measured during development — and without it your Focus mode would switch off and on again in
 the gap. If a new meeting begins during the wait, no end or start shortcut runs at all.
 
+## Setting up a Focus automation
+
+MeetingFocus cannot change your Focus mode directly. **No public macOS API exists for that** —
+`INFocusStatusCenter` can only *read* whether a Focus is active. Shortcuts is the only supported
+route, which is why it is the automation backend rather than a convenience.
+
+One-time setup:
+
+1. Open **Shortcuts** and create a shortcut named e.g. `Meeting Started`.
+2. Add the **Set Focus** action and choose the Focus you want (Do Not Disturb, Work, …), set to
+   **On**.
+3. Create a second shortcut, e.g. `Meeting Ended`, with **Set Focus** set to **Off**.
+4. In MeetingFocus → Settings, pick those two shortcuts from the dropdowns.
+
+Because Focus syncs between Apple devices, this also silences your iPhone for the duration of the
+call — no iOS app required.
+
+A prepared shortcut is deliberately *not* bundled with the app. macOS treats shortcut files from
+unidentified sources as untrusted, so importing one is not reliably a single click, and a setup
+step that sometimes silently fails is worse than one that is explicit. If that changes, the
+cleanest route would be an iCloud shortcut share link, which is trusted by construction.
+
 ## When detection breaks
 
 The Teams detector matches internal HTML element ids that Microsoft can rename in any release.

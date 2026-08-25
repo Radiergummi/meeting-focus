@@ -36,6 +36,21 @@ struct SettingsView: View {
                 shortcutPicker("When a meeting starts", selection: $settings.startShortcutName)
                 shortcutPicker("When the last meeting ends", selection: $settings.endShortcutName)
 
+                HStack {
+                    // There is no public API to set a Focus mode, so a Shortcut is the only
+                    // supported route. The least we can do is take the user to where they make one.
+                    Text("To toggle a Focus, make a shortcut using the Set Focus action.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Open Shortcuts") {
+                        if let url = NSWorkspace.shared.urlForApplication(
+                            withBundleIdentifier: "com.apple.shortcuts"
+                        ) {
+                            NSWorkspace.shared.openApplication(at: url, configuration: .init())
+                        }
+                    }
+                }
+
                 VStack(alignment: .leading) {
                     Text("Wait \(Int(settings.endCooldownSeconds))s before running the end shortcut")
                     Slider(value: $settings.endCooldownSeconds, in: 0...180, step: 5)

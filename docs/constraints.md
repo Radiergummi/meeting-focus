@@ -80,8 +80,13 @@ license infrastructure in M1. Do not add feature gates speculatively either.
 macOS Shortcuts can refuse or warn on unsigned shortcut files. The "one-click Focus setup" promise
 depends on this working smoothly.
 
-**Corners us?** Only the onboarding story, not the architecture. **Unverified — must test before
-promising it.** Fallback is an iCloud shortcut share link, which is trusted by construction.
+**Corners us?** Only the onboarding story, not the architecture.
+
+**Resolved by not relying on it.** Rather than ship an import step that may silently fail, setup is
+documented explicitly in the README and Settings links straight to the Shortcuts app, while the
+shortcut pickers are populated from `shortcuts list` so the user selects a real shortcut instead of
+typing a name that might not exist. If a one-click path is wanted later, an iCloud shortcut share
+link is trusted by construction and needs no bundled file.
 
 ### C5. Automation permission for driving Shortcuts
 Spawning `/usr/bin/shortcuts` may raise an Automation TCC prompt attributed to MeetingFocus. A
