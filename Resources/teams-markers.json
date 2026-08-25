@@ -1,0 +1,16 @@
+{
+  "comment": "Locale-independent HTML element ids exposed by Teams through AXDOMIdentifier. These are Microsoft's internal ids and can change without notice — that is why they live in data rather than in Swift source. Re-derive with the axprobe tool if detection stops working. Verified against Teams 26213.1006.5011.1671 on macOS 26.6.1, 2026-08-25.",
+  "bundleIdentifiers": ["com.microsoft.teams2"],
+  "applicationName": "Microsoft Teams",
+  "titleSuffixesToStrip": [" | Microsoft Teams"],
+  "inMeeting": {
+    "comment": "Any one of these confirms an active call. call-duration-custom is the strongest: it is present for the whole call and survives the control bar auto-hiding.",
+    "primary": ["call-duration-custom"],
+    "secondary": ["hangup-button", "microphone-button", "video-button", "indicators", "horizontalEnd"]
+  },
+  "joining": {
+    "comment": "Pre-join / lobby screen. A 26-second lobby was measured. UNVERIFIED: these ids are inferred, not observed — the lobby was captured before markers were instrumented. Absence simply means no joining state is reported.",
+    "primary": ["prejoin-join-button", "prejoin-join-btn"]
+  },
+  "durationElementID": "call-duration-custom"
+}

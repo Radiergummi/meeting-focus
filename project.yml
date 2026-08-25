@@ -1,0 +1,69 @@
+name: MeetingFocus
+options:
+  bundleIdPrefix: com.matchory
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    GENERATE_INFOPLIST_FILE: YES
+    DEVELOPMENT_TEAM: TH593VRB6W
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  MeetingFocusCore:
+    type: framework
+    platform: macOS
+    sources: [Sources/MeetingFocusCore]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matchory.MeetingFocusCore
+        ENABLE_HARDENED_RUNTIME: YES
+  MeetingFocusCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests/MeetingFocusCoreTests]
+    dependencies:
+      - target: MeetingFocusCore
+  MeetingFocus:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/MeetingFocusApp
+      - path: Resources
+        buildPhase: resources
+    dependencies:
+      - target: MeetingFocusCore
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matchory.MeetingFocus
+        PRODUCT_NAME: MeetingFocus
+        ENABLE_HARDENED_RUNTIME: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        # Driving Shortcuts raises an Automation prompt attributed to this app; without a usage
+        # description macOS turns that into a silent denial.
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: "MeetingFocus runs the Shortcuts you configure when a meeting starts or ends."
+        ENABLE_APP_SANDBOX: NO
+  axprobe:
+    type: tool
+    platform: macOS
+    sources: [Sources/axprobe]
+    settings:
+      base:
+        PRODUCT_NAME: axprobe
+schemes:
+  MeetingFocus:
+    build:
+      targets:
+        MeetingFocus: all
+    run:
+      config: Debug
+  axprobe:
+    build:
+      targets:
+        axprobe: all
