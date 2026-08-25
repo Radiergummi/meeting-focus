@@ -13,6 +13,7 @@
 		2B2D05D4A710A5C1341078CB /* MeetingStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1E62C757ADA9F84C570B6A /* MeetingStateMachineTests.swift */; };
 		3842D365B71B3E66E46B2084 /* MeetingFocusCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 72DEB4F9A6C4C97464DD9E4D /* MeetingFocusCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3D2C515E94F38AE560C93424 /* Meeting.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1B7470E462DBD5B27ABE7A /* Meeting.swift */; };
+		4AEC632CB5539EE071C91D50 /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */; };
 		5110639AFCCDEAB1C17C45D1 /* Automation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6477433196A95993521D1F25 /* Automation.swift */; };
 		51FF3FFC726597EDA3814BA5 /* AXChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79AB959AAC371A3DB5E2296 /* AXChangeObserver.swift */; };
 		53D82433A16FCB56E9B68BEF /* TeamsMarkers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0C7179611BB44AD9548274 /* TeamsMarkers.swift */; };
@@ -94,6 +95,7 @@
 		807AE5431B7928A16604C3C7 /* AutomationCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationCoordinatorTests.swift; sourceTree = "<group>"; };
 		81FB339F54994273092FBB28 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
 		86DD5AE59E6AA7E37AF4A0CF /* MeetingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingDetector.swift; sourceTree = "<group>"; };
+		8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		95E37E8EBAF3C24A73665621 /* MeetingFocusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingFocusApp.swift; sourceTree = "<group>"; };
 		A0B8088C209F2CD989AD87CB /* TeamsAccessibilityDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsAccessibilityDetector.swift; sourceTree = "<group>"; };
 		AA6D2F0269493AA8881419B8 /* MeetingStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingStateMachine.swift; sourceTree = "<group>"; };
@@ -173,6 +175,7 @@
 			isa = PBXGroup;
 			children = (
 				6A10175F4AA4A8CD8F535275 /* AppSettings.swift */,
+				8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */,
 				95E37E8EBAF3C24A73665621 /* MeetingFocusApp.swift */,
 				34E71989389D1BA959E80B4D /* MeetingMonitor.swift */,
 				294FF8DD2101D8805ED8162F /* Accessibility */,
@@ -431,6 +434,7 @@
 				AF3361D69D7618AF7CA183A7 /* AppSettings.swift in Sources */,
 				1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */,
 				A9262633CCA0D493000B12EF /* BundleIdentifierResolver.swift in Sources */,
+				4AEC632CB5539EE071C91D50 /* LaunchAtLogin.swift in Sources */,
 				875E1A08CBE639A85E8309C9 /* Log.swift in Sources */,
 				56C7B07479B31AA30D199F4D /* MeetingFocusApp.swift in Sources */,
 				E69B777CA21D916C19D712BB /* MeetingMonitor.swift in Sources */,
@@ -543,6 +547,7 @@
 				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -721,6 +726,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;

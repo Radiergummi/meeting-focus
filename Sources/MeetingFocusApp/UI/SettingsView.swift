@@ -4,6 +4,8 @@ struct SettingsView: View {
     @Bindable var settings: AppSettings
     @Bindable var monitor: MeetingMonitor
     @State private var shortcutNames: [String] = []
+    @State private var launchAtLogin = LaunchAtLogin.isEnabled
+    @State private var launchAtLoginError: String?
 
     var body: some View {
         Form {
@@ -42,13 +44,42 @@ struct SettingsView: View {
                 }
             }
 
+            Section("General") {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { launchAtLogin },
+                    set: { newValue in
+                        do {
+                            try LaunchAtLogin.setEnabled(newValue)
+                            launchAtLogin = LaunchAtLogin.isEnabled
+                            launchAtLoginError = nil
+                        } catch {
+                            launchAtLoginError = error.localizedDescription
+                        }
+                    }
+                ))
+                if LaunchAtLogin.needsApproval {
+                    HStack {
+                        Text("Waiting for approval in Login Items.")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Open…") { LaunchAtLogin.openLoginItemsSettings() }
+                    }
+                }
+                if let launchAtLoginError {
+                    Text(launchAtLoginError).font(.caption).foregroundStyle(.red)
+                }
+            }
+
             Section("Diagnostics") {
                 Toggle("Debug mode (show recent detections in the menu)", isOn: $settings.debugMode)
             }
         }
         .formStyle(.grouped)
         .frame(width: 460)
-        .task { shortcutNames = await ShortcutsAutomationHandler.availableShortcutNames() }
+        .task {
+            shortcutNames = await ShortcutsAutomationHandler.availableShortcutNames()
+            launchAtLogin = LaunchAtLogin.isEnabled
+        }
     }
 
     /// Offers real shortcut names where possible; typing is still allowed, since Shortcuts may be
