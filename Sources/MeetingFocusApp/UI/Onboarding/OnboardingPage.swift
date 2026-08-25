@@ -134,8 +134,9 @@ struct OnboardingPage<Actions: View>: View {
         // the space above the chevron — a safe area is the system telling us where not to put
         // content — so adding our own top padding on top of it would double it, and fighting it
         // with `.ignoresSafeArea()` only relocates the surplus to the bottom instead of removing
-        // it. Pairs with `WindowChrome.fullSizeContentView`, which is what makes the window paint
-        // its own background behind that inset region instead of leaving a distinct title bar.
+        // it. Pairs with the `.fullSizeContentView` style mask insertion in `WindowChrome`, which
+        // makes the window paint its own background behind that inset region instead of leaving
+        // a distinct title bar.
         .padding(.top, 0)
         .frame(width: 520, height: 430)
         // The close button is gone with the chrome, and an LSUIElement app has no Dock tile to fall

@@ -2,7 +2,8 @@ import AppKit
 import SwiftUI
 
 /// Reaches through to the onboarding window's backing `NSWindow` and hides its remaining chrome:
-/// the title bar's traffic lights and its separator hairline.
+/// the title bar's traffic lights and its separator hairline. Also restores background-dragging
+/// behaviour, which the SwiftUI scene modifier fails to apply to this window.
 ///
 /// This exists because there is no public SwiftUI API for hiding the standard window buttons. The
 /// one window style that does hide them, `.plain`, produces a borderless window — and

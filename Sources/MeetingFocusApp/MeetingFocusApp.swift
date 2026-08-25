@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Without this, AppKit's default is to quit once the onboarding window closes — which the
     // menu bar icon and background monitoring must survive. That default went unnoticed until now
-    // because the onboarding window's own dismissal was silently broken (see `OnboardingPage`).
+    // because the onboarding window's own dismissal was silently broken (see `OnboardingView`).
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
