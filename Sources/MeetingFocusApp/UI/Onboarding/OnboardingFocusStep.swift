@@ -10,15 +10,23 @@ struct OnboardingFocusStep: View {
     @State private var installed = false
     @State private var failure: String?
 
+    /// Kept as a stored constant rather than inlined in a ternary: the catalogue coverage scan keys
+    /// off the text immediately before a literal, and `? ` / `: ` match no localizing site, so an
+    /// inline ternary would make both branches look like dead keys to the scan.
+    private let pendingMessage: LocalizedStringKey = """
+        MeetingFocus will add two shortcuts — one to turn Do Not Disturb on when a \
+        meeting starts, one to turn it off when it ends — and Shortcuts will ask you to \
+        confirm each.
+        """
+
+    private let installedMessage: LocalizedStringKey =
+        "Both shortcuts are ready. MeetingFocus will run them when a meeting starts and ends."
+
     var body: some View {
         OnboardingPage(
             symbol: "moon.fill",
             title: "Turn on Do Not Disturb for meetings",
-            message: """
-                MeetingFocus will add two shortcuts — one to turn Do Not Disturb on when a \
-                meeting starts, one to turn it off when it ends — and Shortcuts will ask you to \
-                confirm each.
-                """,
+            message: installed ? installedMessage : pendingMessage,
             // There is no way to read which Focus modes exist without Full Disk Access, so the
             // shortcut ships set to Do Not Disturb. Saying where to change it is the honest
             // alternative to pretending we offered a choice. Once installed there is nothing left

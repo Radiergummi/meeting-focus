@@ -138,6 +138,23 @@
         }
       }
     },
+    "Both shortcuts are ready. MeetingFocus will run them when a meeting starts and ends." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beide Kurzbefehle sind bereit. MeetingFocus führt sie aus, wenn eine Besprechung beginnt und endet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Both shortcuts are ready. MeetingFocus will run them when a meeting starts and ends."
+          }
+        }
+      }
+    },
     "Built publicly from source" : {
       "extractionState" : "manual",
       "localizations" : {

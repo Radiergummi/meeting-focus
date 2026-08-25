@@ -61,6 +61,9 @@ struct OnboardingView: View {
     }
 
     private var permission: some View {
+        // Deliberately does not name Teams, or any other meeting app: per-app detectors are the next
+        // piece of work, and once a second one lands this copy would need rewriting the moment it
+        // singled one out.
         OnboardingPage(
             symbol: "accessibility",
             title: "Let MeetingFocus see your meetings",
@@ -97,6 +100,8 @@ struct OnboardingView: View {
             title: "You are set up",
             message: "MeetingFocus lives in your menu bar and starts working straight away.",
             rows: [
+                // This is an `LSUIElement` app with no Dock tile, so the menu bar icon is the only
+                // thing a user can look at to tell what state it's in — worth spelling out here.
                 OnboardingRow(
                     symbol: "menubar.arrow.up.rectangle",
                     title: "Watch the menu bar icon",
@@ -110,6 +115,9 @@ struct OnboardingView: View {
             ],
             back: { back() },
             actions: {
+                // On failure the toggle simply bounces back rather than growing an error label: the
+                // value is re-read from the service instead of assumed, and Settings → General
+                // reports the reason, so this rare case doesn't need its own explanation here.
                 Toggle("Launch at login", isOn: Binding(
                     get: { launchAtLogin },
                     set: { newValue in
