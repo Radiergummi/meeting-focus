@@ -54,7 +54,10 @@ jobs:
           SIGNING_DATA: ${{ secrets.SIGNING_DATA }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
           APPLE_API_KEY_DATA: ${{ secrets.APPLE_API_KEY_DATA }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          # Repository variables rather than secrets: the key id and the issuer id are
+          # identifiers, not credentials — useless without the .p8 above, and they appear
+          # in notarytool's own output and file paths regardless.
+          APPLE_API_KEY_ID: ${{ vars.APPLE_API_KEY_ID }}
         run: ./.github/scripts/signing.sh
 
       # The version in the tag is the version that ships; deriving it here means the tag and the
@@ -87,8 +90,8 @@ jobs:
 
       - name: Build, notarize and package
         env:
-          NOTARY_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          NOTARY_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          NOTARY_KEY_ID: ${{ vars.APPLE_API_KEY_ID }}
+          NOTARY_ISSUER: ${{ vars.APPLE_API_ISSUER }}
           MF_BUILD_COMMIT: ${{ github.sha }}
           MF_BUILD_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           CURRENT_PROJECT_VERSION: ${{ github.run_number }}

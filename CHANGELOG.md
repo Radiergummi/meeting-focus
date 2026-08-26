@@ -13,17 +13,45 @@ documentation belong in the commit history, not here.
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-26
+
 ### Added
 
+- A first-run setup window, which takes a new installation all the way to working automation
+  without anyone having to author a Shortcut or type its name. It explains what Accessibility is
+  needed for before asking for it, then installs and selects two Do Not Disturb shortcuts — one
+  for the start of a meeting, one for the end. Both are generated and signed on your own machine,
+  so nothing unsigned is ever downloaded. Reopen it any time from "Set Up MeetingFocus…" in the
+  menu.
 - The menu bar icon can be hidden, for people who want the app to run invisibly. Detection and
   automation keep running. Opening MeetingFocus again from the Applications folder brings the icon
   back — necessary, because with the icon hidden the app has no other visible surface.
+- Technical information in the menu, on the terms the Wi-Fi menu uses: hold ⌥ Option while opening
+  the menu bar item and it lists which detectors are running, whether Accessibility is granted, the
+  build, and the last ten detections. This replaces the Debug mode switch in Settings, which had to
+  be turned on before the log started filling — by which time the detection you wanted explained had
+  already happened.
 - German (`de`) alongside English. Every string in the menu and in Settings is translated, including
   the menu bar icon's VoiceOver label. German is marked `needs_review` in the catalogue until a
   native speaker has read it.
 
+### Changed
+
+- "Set Up MeetingFocus…" is now the ⌥ alternate of "Settings…" rather than a row of its own, with
+  ⌘⌥, as its shortcut. Onboarding presents itself on a fresh install and reaching it again is a
+  once-in-a-while repair, so it no longer takes a line in the everyday menu.
+
 ### Fixed
 
+- **Teams meetings are now actually detected.** Teams renders its interface as web content, which
+  macOS publishes to assistive software only once it believes something needs it — and reading it
+  is not enough to ask. MeetingFocus was therefore looking at an empty tree and concluding no
+  meeting was happening: during a real call it could see 42 elements and none of the meeting's.
+  It now asks for the full interface, and sees all of it. Where it still cannot see, it now says so
+  rather than reporting "no meeting", which previously overrode the microphone detector even though
+  that one could see the call perfectly well.
+- Turning a detector on or off in Settings takes effect immediately. It previously did nothing at
+  all until the app was next launched.
 - A failed Shortcut no longer leaves its error message in the menu until the app is relaunched. The
   message now clears the next time a shortcut runs successfully.
 - Five pieces of the UI could never be translated, because they were typed as plain `String` where
@@ -53,5 +81,6 @@ First release.
   and diagnostics.
 - Automatic updates via Sparkle, signed with a key held by the maintainer rather than by CI.
 
-[Unreleased]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Radiergummi/meeting-focus/releases/tag/v0.1.0

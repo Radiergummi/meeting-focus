@@ -27,7 +27,7 @@ settings:
     # Required for notarization; a signature without a secure timestamp is rejected.
     OTHER_CODE_SIGN_FLAGS: "--timestamp"
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "0.1.0"
+    MARKETING_VERSION: "0.1.1"
     CURRENT_PROJECT_VERSION: "1"
     # Build provenance. Defaults describe a local build honestly; the release workflow overrides
     # them on the xcodebuild command line so a released bundle names the commit and public build
