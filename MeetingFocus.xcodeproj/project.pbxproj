@@ -35,6 +35,7 @@
 		EFDD85DCE0663213E5E9A6F0 /* BuildInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE79B26962593FE09A75138 /* BuildInfo.swift */; };
 		F11F91B1DBC4EA3ACE8C7143 /* ShortcutsAutomationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1595DB0B5DCE5BA5B646648E /* ShortcutsAutomationHandler.swift */; };
 		F689F619DD2DF795853DE4FF /* MenuRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75914D031F9BEC4160612293 /* MenuRows.swift */; };
+		FD4F6B958DAFFB0E9B022C16 /* MeetingFocus.icon in Resources */ = {isa = PBXBuildFile; fileRef = DD2A966E8A2FA52E8AC14C18 /* MeetingFocus.icon */; };
 		FE5C0BADED08684351BC0C26 /* FocusShortcutInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98BED26D88457D490F555D3C /* FocusShortcutInstaller.swift */; };
 /* End PBXBuildFile section */
 
@@ -65,6 +66,7 @@
 		BA4001B03DC26F988AEDDB6A /* AXSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSupport.swift; sourceTree = "<group>"; };
 		C696E14F19E234AF7295DE64 /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		DBE79B26962593FE09A75138 /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
+		DD2A966E8A2FA52E8AC14C18 /* MeetingFocus.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = MeetingFocus.icon; sourceTree = "<group>"; };
 		E7B49AFBA47E0C4BD34E406F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		E92577C382924CA98FF15129 /* BundleIdentifierResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleIdentifierResolver.swift; sourceTree = "<group>"; };
 		EB57CA268BB8B84B35CE69E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -84,6 +86,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		02FAB114AA558BBB911D615C /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				DD2A966E8A2FA52E8AC14C18 /* MeetingFocus.icon */,
+			);
+			path = Icons;
+			sourceTree = "<group>";
+		};
 		0C3863496A2405CA19DD72DD /* Detectors */ = {
 			isa = PBXGroup;
 			children = (
@@ -201,6 +211,7 @@
 		B9278DD420652A8A473C55B1 = {
 			isa = PBXGroup;
 			children = (
+				02FAB114AA558BBB911D615C /* Icons */,
 				74A877CBD97247C78C996305 /* Packages */,
 				642768E3DE067EEB6F065C42 /* Resources */,
 				3328E40F563DD1A8A7FF3C63 /* Sources */,
@@ -277,6 +288,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BA69C4265A3C97C2685387D2 /* Localizable.xcstrings in Resources */,
+				FD4F6B958DAFFB0E9B022C16 /* MeetingFocus.icon in Resources */,
 				4AD6AE4B7FF53BC27D8D11E3 /* audio-allowlist.json in Resources */,
 				38EEBCA315EB7AF2A3B0B5E9 /* focus-shortcut.json in Resources */,
 				9811F7EF0BF194B724E7C7E0 /* teams-markers.json in Resources */,
@@ -322,7 +334,7 @@
 		00699614471652FB33329D9A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MeetingFocus;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -408,7 +420,7 @@
 		C44D175F7C3D8604D787922C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = MeetingFocus;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;

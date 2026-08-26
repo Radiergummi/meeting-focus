@@ -43,6 +43,12 @@ targets:
       - Sources/MeetingFocusApp
       - path: Resources
         buildPhase: resources
+      # An Icon Composer bundle, compiled by actool into Assets.car. `type: file` is required:
+      # XcodeGen predates the .icon extension and would otherwise descend into the bundle and add
+      # its PNGs as loose resources, which produces no app icon at all.
+      - path: Icons/MeetingFocus.icon
+        type: file
+        buildPhase: resources
     dependencies:
       - package: MeetingFocusCore
         product: MeetingFocusCore
@@ -51,6 +57,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: me.mazetti.meetingfocus
         PRODUCT_NAME: MeetingFocus
+        # Names the Icon Composer bundle above. actool writes the matching CFBundleIconName into a
+        # partial plist that is merged with the hand-authored Info.plist, so the key is not repeated
+        # there — it would go stale the moment the icon is renamed.
+        ASSETCATALOG_COMPILER_APPICON_NAME: MeetingFocus
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_APP_SANDBOX: NO
         # An explicit Info.plist rather than INFOPLIST_KEY_* settings: those only support Apple's
