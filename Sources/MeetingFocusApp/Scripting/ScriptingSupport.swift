@@ -54,7 +54,11 @@ final class SetMeetingStateCommand: NSScriptCommand {
         let minutes = (arguments["minutes"] as? NSNumber)?.doubleValue
         let title = arguments["meetingTitle"] as? String
 
-        let expiresAt: Date? = MainActor.assumeIsolated {
+        // Nil twice over, and the two mean opposite things: no monitor is a failure, while a
+        // dismissal legitimately has no expiry to report. Hence the nested optional rather than a
+        // bare `Date?` — collapsing them is what made this command report success having done
+        // nothing.
+        let outcome: Date?? = MainActor.assumeIsolated {
             guard let monitor = IntentBridge.monitor else { return nil }
             if inMeeting {
                 monitor.setInMeeting(
@@ -63,21 +67,37 @@ final class SetMeetingStateCommand: NSScriptCommand {
                     source: "applescript",
                     title: title
                 )
-                return monitor.manualMeetingExpiresAt
+                return .some(monitor.manualMeetingExpiresAt)
             } else {
                 monitor.setInMeeting(false, source: "applescript")
-                return nil
+                return .some(nil)
             }
         }
+        guard let expiresAt = outcome else { return reportNotReady() }
         return expiresAt
     }
 }
 
 final class ClearMeetingOverrideCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        MainActor.assumeIsolated {
-            IntentBridge.monitor?.withdrawManualMeeting(isInstruction: true, source: "applescript")
+        let ready = MainActor.assumeIsolated {
+            guard let monitor = IntentBridge.monitor else { return false }
+            monitor.withdrawManualMeeting(source: "applescript")
+            return true
         }
+        return ready ? nil : reportNotReady()
+    }
+}
+
+extension NSScriptCommand {
+    /// Fails the command rather than returning quietly.
+    ///
+    /// The window is small — Apple Events queue until `applicationDidFinishLaunching` has run — but
+    /// a script that is told nothing assumes it worked, and the App Intents on the same operations
+    /// throw here. Silence was the odd one out.
+    func reportNotReady() -> Any? {
+        scriptErrorNumber = Int(errAEEventFailed)
+        scriptErrorString = "MeetingFocus is still starting up."
         return nil
     }
 }

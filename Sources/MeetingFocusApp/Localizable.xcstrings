@@ -1348,7 +1348,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Besprechungsstatus auf ${state} setzen, für ${minutes} Minuten"
+            "value" : "Besprechungsstatus für ${minutes} Minuten auf ${state} setzen"
           }
         },
         "en" : {

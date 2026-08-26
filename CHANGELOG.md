@@ -25,6 +25,14 @@ documentation belong in the commit history, not here.
   titled …` and `clear meeting override` as commands. Script Editor's Open Dictionary shows the
   full terminology.
 
+### Fixed
+
+- A scripting command sent before the app had finished launching reported success having done
+  nothing. It now fails with an Apple Event error, the way the equivalent App Intent already threw.
+- An automation that renewed its manual claim on a short interval wrote a detection-log line every
+  time, flushing all twenty entries within minutes and evicting whatever someone opened the log to
+  read. A renewal is now silent; only a fresh declaration is logged.
+
 ## [0.1.1] — 2026-08-26
 
 ### Added

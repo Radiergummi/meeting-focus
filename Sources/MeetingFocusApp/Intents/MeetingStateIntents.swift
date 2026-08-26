@@ -71,7 +71,7 @@ struct SetMeetingStateIntent: AppIntent {
     }
 }
 
-/// Withdrawal, not dismissal — see `MeetingMonitor.withdrawManualMeeting(isInstruction:)`.
+/// Withdrawal, not dismissal — see `MeetingMonitor.withdrawManualMeeting(source:)`.
 struct ClearMeetingOverrideIntent: AppIntent {
     static var title: LocalizedStringResource { "Clear Meeting Override" }
     static var description: IntentDescription {
@@ -85,7 +85,7 @@ struct ClearMeetingOverrideIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         guard let monitor = IntentBridge.monitor else { throw MeetingFocusIntentError.notReady }
-        monitor.withdrawManualMeeting(isInstruction: true, source: "shortcuts")
+        monitor.withdrawManualMeeting(source: "shortcuts")
         return .result()
     }
 }
