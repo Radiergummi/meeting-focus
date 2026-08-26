@@ -129,8 +129,11 @@ actor TeamsAccessibilityDetector: MeetingDetector {
 
         let scan = scanTree(pid: application.processIdentifier, now: now)
 
+        // Done here rather than in `start()` because the tree goes dormant again whenever Teams
+        // restarts, which the detector would otherwise never notice. The next poll sees the result.
         if scan.domIdentifiersSeen == 0 {
-            wakeAccessibilityTree(pid: application.processIdentifier)
+            Log.accessibility.info("teams web tree is dormant, requesting accessibility")
+            AccessibilityWake.request(pid: application.processIdentifier)
         }
 
         if scan.suspectedMarkerBreakage {
@@ -158,27 +161,6 @@ actor TeamsAccessibilityDetector: MeetingDetector {
 
         emit(verdict: scan.verdict, title: scan.title, startedAt: scan.startedAt, at: now)
         return scan.verdict == .inMeeting ? pollIntervalActive : pollIntervalIdle
-    }
-
-    /// Persuades Chromium to publish Teams' web content to the accessibility API.
-    ///
-    /// Chromium keeps that tree switched off until it believes an assistive client needs it, and
-    /// *reading* does not convince it — the application's native chrome answers while everything
-    /// below stays empty, so the markers this detector matches on simply are not there. Writing to
-    /// the application element does convince it. Both attributes are refused (`-25205`
-    /// `attributeUnsupported` and `-25208` `illegalArgument`), which is not a failure to work
-    /// around: the attempt is the signal, and the refusal is what Chromium answers after acting on
-    /// it. Measured against Teams 26213.1006.5011.1671 during a live call — 42 nodes and 0
-    /// identifiers before, 193 and 32 within three seconds afterwards.
-    ///
-    /// Called from the poll rather than from `start()` because the tree goes dormant again whenever
-    /// Teams restarts, which the detector would otherwise never notice.
-    private func wakeAccessibilityTree(pid: pid_t) {
-        Log.accessibility.info("teams web tree is dormant, requesting accessibility")
-        let application = AXUIElementCreateApplication(pid)
-        for attribute in ["AXManualAccessibility", "AXEnhancedUserInterface"] {
-            _ = AXUIElementSetAttributeValue(application, attribute as CFString, kCFBooleanTrue)
-        }
     }
 
     private func emit(verdict: Verdict, title: String?, startedAt: Date?, at now: Date) {
@@ -257,7 +239,7 @@ actor TeamsAccessibilityDetector: MeetingDetector {
         // empty — the native window chrome answers and everything below it is missing. Claiming
         // absence from that is worse than saying nothing: this detector's evidence is definitive,
         // so a blind `notInMeeting` outranks the microphone tier, which can still see the meeting
-        // perfectly well. `wakeAccessibilityTree` is what gets the tree back.
+        // perfectly well. `AccessibilityWake` is what gets the tree back.
         if scan.verdict == .notInMeeting && identifiersSeen == 0 {
             scan.verdict = .indeterminate
         }

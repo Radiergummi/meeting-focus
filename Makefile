@@ -38,11 +38,14 @@ PBXPROJ = MeetingFocus.xcodeproj/project.pbxproj
 # The accessibility probe: a development tool, deliberately outside Sources/ because BUILD_SOURCES
 # globs that directory — a probe there would trigger a full app rebuild on every probe edit.
 AXPROBE = ./.build/axprobe
-# BundleIdentifierResolver is compiled in rather than copied: CoreAudio reports Teams' helper
-# process, and correlate's whole job is comparing the two tiers' idea of *which* app is capturing.
-# A second copy of that normalisation would be free to drift from the one detection actually uses.
+# Two app files are compiled in rather than copied, for the same reason in both cases: a probe that
+# disagrees with detection measures itself. BundleIdentifierResolver — CoreAudio reports Teams'
+# helper process, and correlate's whole job is comparing the two tiers' idea of *which* app is
+# capturing. AccessibilityWake — Chromium publishes its web tree only to a client that writes to it,
+# so a probe without the wake reads a dormant tree and reports an absence of markers.
 AXPROBE_SOURCES := $(shell find Tools/axprobe -type f -name '*.swift') \
 	Sources/MeetingFocusApp/Detectors/BundleIdentifierResolver.swift \
+	Sources/MeetingFocusApp/Detectors/AccessibilityWake.swift \
 	Sources/MeetingFocusCore/ExecutablePath.swift
 
 # The String Catalogue editor. LOCALIZATION_RULES lives under Tests/ and is compiled into BOTH this

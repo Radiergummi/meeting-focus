@@ -55,8 +55,55 @@ func walk(_ element: AXUIElement, depth: Int, maxDepth: Int, visit: (AXUIElement
     for child in children(element) { walk(child, depth: depth + 1, maxDepth: maxDepth, visit: visit) }
 }
 
+/// How many elements under these windows expose an `AXDOMIdentifier` of any kind.
+///
+/// This is the measurement that tells a *dormant* Chromium web tree apart from an application that
+/// simply has no call on screen. Zero is not "no meeting", it is "cannot see" — the distinction the
+/// app itself draws by reporting `indeterminate`, and the one this tool used to miss entirely.
+func domIdentifierCount(_ list: [AXUIElement], maxDepth: Int = 80) -> Int {
+    var count = 0
+    for window in list {
+        walk(window, depth: 0, maxDepth: maxDepth) { element, _ in
+            if string(element, "AXDOMIdentifier") != nil { count += 1 }
+        }
+    }
+    return count
+}
+
+/// Reads an application's windows, waking a dormant web tree first if there is one.
+///
+/// For the commands that scan exactly once. `AccessibilityWake.request` returns before the tree
+/// fills in, so waking and immediately re-reading still sees nothing — hence the wait, and hence
+/// this being separate from the polling callers, which get the same effect for free on their next
+/// tick and must not stall for three seconds mid-measurement.
+func windowsWakingIfDormant(of bundleID: String) -> (pid: pid_t, windows: [AXUIElement])? {
+    guard let first = windows(of: bundleID) else { return nil }
+    guard domIdentifierCount(first.windows) == 0 else { return first }
+
+    note("""
+        no element exposes an AXDOMIdentifier — the web tree is dormant, not empty.
+        Requesting accessibility and re-reading in \(Int(AccessibilityWake.settlingTime))s…
+        """)
+    AccessibilityWake.request(pid: first.pid)
+    Thread.sleep(forTimeInterval: AccessibilityWake.settlingTime)
+
+    guard let second = windows(of: bundleID) else { return first }
+    if domIdentifierCount(second.windows) == 0 {
+        note("""
+            still nothing. Either this application does not publish a web tree, or it refused.
+            Anything reported below describes a tree that cannot be seen — do not read an empty
+            result as an absence of markers.
+            """)
+    }
+    return second
+}
+
+func note(_ message: String) {
+    FileHandle.standardError.write(Data((message + "\n").utf8))
+}
+
 func dump(bundleID: String, maxDepth: Int) {
-    guard let (pid, list) = windows(of: bundleID) else { exit(1) }
+    guard let (pid, list) = windowsWakingIfDormant(of: bundleID) else { exit(1) }
     print("\(bundleID) pid \(pid), \(list.count) window(s)")
     for (index, window) in list.enumerated() {
         print("\n### window[\(index)] \"\(string(window, kAXTitleAttribute) ?? "-")\"")
@@ -77,7 +124,7 @@ func dump(bundleID: String, maxDepth: Int) {
 }
 
 func identifiers(bundleID: String) {
-    guard let (_, list) = windows(of: bundleID) else { exit(1) }
+    guard let (_, list) = windowsWakingIfDormant(of: bundleID) else { exit(1) }
     var seen: [String: String] = [:]
     for window in list {
         walk(window, depth: 0, maxDepth: 80) { element, _ in
@@ -100,17 +147,20 @@ func watch(bundleID: String, markers: Set<String>) {
     while true {
         var found: Set<String> = []
         var nodes = 0
-        if let (_, list) = windows(of: bundleID) {
+        var identifiers = 0
+        if let (pid, list) = windows(of: bundleID) {
             for window in list {
                 walk(window, depth: 0, maxDepth: 80) { element, _ in
                     nodes += 1
-                    if let identifier = string(element, "AXDOMIdentifier"), markers.contains(identifier) {
-                        found.insert(identifier)
-                    }
+                    guard let identifier = string(element, "AXDOMIdentifier") else { return }
+                    identifiers += 1
+                    if markers.contains(identifier) { found.insert(identifier) }
                 }
             }
+            // No wait here, deliberately: the next tick reads the woken tree.
+            if identifiers == 0 { AccessibilityWake.request(pid: pid) }
         }
-        let line = "nodes \(nodes)  found [\(found.sorted().joined(separator: ","))]"
+        let line = "nodes \(nodes)  dom \(identifiers)  found [\(found.sorted().joined(separator: ","))]"
         if line != previous {
             previous = line
             print("[\(formatter.string(from: Date()))] \(line)")

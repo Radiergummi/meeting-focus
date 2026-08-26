@@ -119,6 +119,12 @@ refuses to draw a conclusion from a run that never saw a call. What remains is r
 make axprobe && ./.build/axprobe correlate com.microsoft.teams2 600
 ```
 
+Prerequisite discharged 2026-08-26: the probe did not perform the write that wakes Chromium's web
+tree — only the app did — so this run would have read `ax` as `no-call` for the whole call and
+measured nothing. `AccessibilityWake` is now shared with `axprobe` through `AXPROBE_SOURCES`, and
+`correlate` distinguishes a blind run from a call-less one in its own summary rather than reporting
+both as `INCONCLUSIVE` with the same wording.
+
 Join a real call, mute for ~15 seconds, unmute, leave. The answer is whether `input` ever reads
 `idle` while `ax` reads `in-call`. Verified so far only against an idle Teams and against
 CoreAudio directly (`corespeechd` reads `IsRunningInput=1`, so the audio half is live); the
@@ -128,7 +134,9 @@ in-call half is unmeasured because it needs a call.
 `Resources/teams-markers.json` carries `prejoin-join-button` / `prejoin-join-btn` marked
 `UNVERIFIED` — they are inferred, never observed. A 26-second lobby *was* measured, so the state is
 real; the ids are guesses. Capture the lobby with `axprobe ids com.microsoft.teams2` while sitting
-in a pre-join screen, then either fix them or delete them. Shipping a guess that silently never
+in a pre-join screen, then either fix them or delete them. (That command only became trustworthy on
+2026-08-26 — see the prerequisite note under item 5; before it, an empty capture would have been the
+dormant tree rather than a wrong guess.) Shipping a guess that silently never
 matches is worse than shipping no `joining` state.
 
 ### 7. Confirm whether Graph's `InAMeeting` is calendar-derived — answered: yes

@@ -10,6 +10,7 @@
 		0973F3E164F5C816137630C4 /* ScriptingSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4DC4BEC61BCBB2A5C237949 /* ScriptingSupport.swift */; };
 		0F6A287AA3C00ABEE387677E /* MeetingFocusCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2FA45C7A1676DADA4C0729B9 /* MeetingFocusCore */; };
 		1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040B04DFB875BFABA3508896 /* AudioProcessDetector.swift */; };
+		204B8C37558A325CDE7810C0 /* AccessibilityWake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B9C375E152ECBB83C1B1DF /* AccessibilityWake.swift */; };
 		25CCD0399DC13D7D978F14D9 /* AutomationStateDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD00C82C4AD7A0F07617B7E /* AutomationStateDefaults.swift */; };
 		38EEBCA315EB7AF2A3B0B5E9 /* focus-shortcut.json in Resources */ = {isa = PBXBuildFile; fileRef = 62A2B6ECAD008E37871BD254 /* focus-shortcut.json */; };
 		3DC8EE9C87316454744305F5 /* WindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CDAC45DCDAC02298640B2B /* WindowChrome.swift */; };
@@ -64,6 +65,7 @@
 		75914D031F9BEC4160612293 /* MenuRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRows.swift; sourceTree = "<group>"; };
 		8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		91A7BBEC51928D04EC946050 /* OnboardingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPage.swift; sourceTree = "<group>"; };
+		95B9C375E152ECBB83C1B1DF /* AccessibilityWake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityWake.swift; sourceTree = "<group>"; };
 		95E37E8EBAF3C24A73665621 /* MeetingFocusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingFocusApp.swift; sourceTree = "<group>"; };
 		96E98ABD1A53AD6D0276D278 /* audio-allowlist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "audio-allowlist.json"; sourceTree = "<group>"; };
 		98BED26D88457D490F555D3C /* FocusShortcutInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusShortcutInstaller.swift; sourceTree = "<group>"; };
@@ -107,6 +109,7 @@
 		0C3863496A2405CA19DD72DD /* Detectors */ = {
 			isa = PBXGroup;
 			children = (
+				95B9C375E152ECBB83C1B1DF /* AccessibilityWake.swift */,
 				4B03AE540E94073C9D96E15A /* AudioAllowlistLoading.swift */,
 				040B04DFB875BFABA3508896 /* AudioProcessDetector.swift */,
 				E92577C382924CA98FF15129 /* BundleIdentifierResolver.swift */,
@@ -336,6 +339,7 @@
 			files = (
 				51FF3FFC726597EDA3814BA5 /* AXChangeObserver.swift in Sources */,
 				5681608449E6D75B8F61A2B2 /* AXSupport.swift in Sources */,
+				204B8C37558A325CDE7810C0 /* AccessibilityWake.swift in Sources */,
 				AF3361D69D7618AF7CA183A7 /* AppSettings.swift in Sources */,
 				47A5B0EFA93EA7B3AF606D84 /* AudioAllowlistLoading.swift in Sources */,
 				1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */,

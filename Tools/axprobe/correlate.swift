@@ -27,6 +27,10 @@ private struct Sample {
     var inCall: Bool
     var capturing: Bool
     var markers: Set<String>
+    /// Elements exposing an `AXDOMIdentifier` of any kind. Zero means the web tree is dormant, so
+    /// `inCall: false` for this sample says nothing about whether a call is running — the
+    /// distinction that makes the difference between a measurement and a wasted call.
+    var domIdentifiers: Int
     /// Capturing pids and the bundle identifier each resolved to, for the transcript.
     var capturingBy: [String]
     /// The mute control's own label. Localized, so it is a note in the log and never a signal —
@@ -94,10 +98,12 @@ private func sample(
 ) -> Sample {
     var found: Set<String> = []
     var micLabel: String?
-    if let (_, list) = windows(of: bundleID, quiet: true) {
+    var identifiers = 0
+    if let (pid, list) = windows(of: bundleID, quiet: true) {
         for window in list {
             walk(window, depth: 0, maxDepth: 80) { element, _ in
                 guard let identifier = string(element, "AXDOMIdentifier") else { return }
+                identifiers += 1
                 if markers.contains(identifier) { found.insert(identifier) }
                 if identifier == micMarker {
                     micLabel = string(element, kAXDescriptionAttribute)
@@ -105,12 +111,17 @@ private func sample(
                 }
             }
         }
+        // Exactly what the detector's poll does, and for the same reason: Chromium publishes its
+        // web content only to a client that writes to it. Never waited on — the sampling cadence
+        // *is* the measurement — so the woken tree shows up on a later tick.
+        if identifiers == 0 { AccessibilityWake.request(pid: pid) }
     }
     let capturingPIDs = capturing(bundleID: bundleID, resolver: &resolver)
     return Sample(
         inCall: !found.isEmpty,
         capturing: !capturingPIDs.isEmpty,
         markers: found,
+        domIdentifiers: identifiers,
         capturingBy: capturingPIDs,
         micLabel: micLabel
     )
@@ -123,6 +134,9 @@ private struct Tally {
     var counts: [String: Int] = [:]
     var longestInCallIdle = 0
     var samples = 0
+    /// Samples that saw no `AXDOMIdentifier` at all. These cannot contribute a `no-call` reading,
+    /// because the tier they would contribute it from was not looking at anything.
+    var blindSamples = 0
 
     var inCallSamples: Int { (counts["in-call/running"] ?? 0) + (counts["in-call/idle"] ?? 0) }
 }
@@ -144,6 +158,7 @@ private func measure(
         if correlateInterrupted != 0 { break }
         let now = sample(bundleID: bundleID, markers: markers, micMarker: micMarker, resolver: &resolver)
         tally.samples += 1
+        if now.domIdentifiers == 0 { tally.blindSamples += 1 }
 
         let cell = "\(now.inCall ? "in-call" : "no-call")/\(now.capturing ? "running" : "idle")"
         tally.counts[cell, default: 0] += 1
@@ -154,7 +169,8 @@ private func measure(
             currentInCallIdle = 0
         }
 
-        var line = "ax=\(now.inCall ? "in-call" : "no-call ")  input=\(now.capturing ? "running" : "idle   ")"
+        let axCell = now.inCall ? "in-call" : (now.domIdentifiers == 0 ? "blind  " : "no-call")
+        var line = "ax=\(axCell)  input=\(now.capturing ? "running" : "idle   ")"
         if !now.capturingBy.isEmpty { line += "  pid=\(now.capturingBy.joined(separator: ","))" }
         if let label = now.micLabel { line += "  mic=\"\(label)\"" }
         line += "  markers=[\(now.markers.sorted().joined(separator: ","))]"
@@ -178,10 +194,22 @@ private func report(_ tally: Tally, bundleID: String) {
     // Gated on having seen a call at all. Reporting "muting does not release the stream" from a run
     // that never saw a call would be a confident answer drawn from no evidence, which is worse than
     // no answer — and it is the exact mistake the unverified `joining` markers already record.
-    if tally.inCallSamples == 0 {
+    if tally.inCallSamples == 0 && tally.blindSamples == tally.samples {
+        // Told apart from the case below on purpose. "Saw no call" and "could not see" are the same
+        // output and opposite findings, and reading the first as the second is what made every
+        // earlier run of this tool worthless during a live call.
+        print("""
+              INCONCLUSIVE, AND NOTHING WAS OBSERVED: no sample saw a single AXDOMIdentifier, so
+              the web tree stayed dormant for the whole run and the markers were never in play.
+              This is not evidence that no call was running.
+              Teams may have refused the wake, or may not have been running at all.
+              Check with: axprobe ids \(bundleID)
+              """)
+    } else if tally.inCallSamples == 0 {
         print("""
               INCONCLUSIVE: no sample saw an active call, so nothing was measured.
               Was a call actually joined, and do the markers still match?
+              \(tally.blindSamples) of \(tally.samples) sample(s) saw a dormant tree.
               Check the ids with: axprobe ids \(bundleID)
               """)
     } else if tally.longestInCallIdle == 0 {
