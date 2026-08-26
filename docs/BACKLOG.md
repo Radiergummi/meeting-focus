@@ -274,10 +274,31 @@ precision.
 better title than a tab title, for less work and no per-browser study. Keep this only for meetings
 with no calendar entry at all — an ad-hoc Meet link someone was sent in chat.
 
-### 13. UI tests
-No UI test target. Pensieve's pattern exports and restores the app's `UserDefaults` domain around
-the suite so a test run cannot shift real state — worth copying if this app ever writes state worth
-protecting.
+### 13. UI tests — reframed 2026-08-26, and partly answered
+The gap worth closing was never really *UI* tests. It was that nothing in the app target is
+testable at all: `swift test` compiles none of it, which is why item 17's fix had to move into
+`MeetingFocusCore` before it could be verified, and why `ShortcutListing` was put there rather than
+beside the subprocess that produces its input.
+
+A hosted Xcode unit-test target was considered and rejected. `Package.swift` already records why —
+`xcodebuild test` "spent well over a minute spinning up a test host for logic that needs none" —
+and this app makes it worse: it is `LSUIElement`, so a test host would launch the real menu bar
+app, start monitoring and instantiate the updater on every run.
+
+The rule adopted instead: **a decision belongs in the core, where it can be tested; the app target
+holds platform glue and views.** `ExecutablePath.outermostApplicationBundle(forExecutableAt:)` is
+the first migration under it — the rule behind constraint D1, a *verified* bug that had no test
+because it lived in the app target. It is pure path arithmetic, so it moved; reading the resolved
+bundle's identifier needs a live pid and a file system, so that stayed.
+
+Note the file is compiled two ways deliberately, and `make axprobe` proves it: `BundleIdentifierResolver`
+is shared with the probe by a flat `swiftc`, which has no module to import, hence the `canImport`
+guard rather than a second copy free to drift.
+
+**Still open:** genuine UI tests over the onboarding flow, and Pensieve's `UserDefaults`
+export/restore pattern around any suite that touches settings — which matters more now that
+identifiers are stored there. Deprioritised rather than dismissed: XCUITest is slow and flaky, and
+every decision moved into the core is one it no longer needs to cover.
 
 ---
 

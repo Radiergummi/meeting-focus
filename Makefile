@@ -42,7 +42,8 @@ AXPROBE = ./.build/axprobe
 # process, and correlate's whole job is comparing the two tiers' idea of *which* app is capturing.
 # A second copy of that normalisation would be free to drift from the one detection actually uses.
 AXPROBE_SOURCES := $(shell find Tools/axprobe -type f -name '*.swift') \
-	Sources/MeetingFocusApp/Detectors/BundleIdentifierResolver.swift
+	Sources/MeetingFocusApp/Detectors/BundleIdentifierResolver.swift \
+	Sources/MeetingFocusCore/ExecutablePath.swift
 
 # The String Catalogue editor. LOCALIZATION_RULES lives under Tests/ and is compiled into BOTH this
 # tool and the test target: reading project.yml's language lists and counting a catalogue's keys as

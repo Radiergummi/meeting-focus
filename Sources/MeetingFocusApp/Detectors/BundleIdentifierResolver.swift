@@ -1,5 +1,13 @@
 import AppKit
 import Darwin
+// Conditional because this file is compiled two ways on purpose. In the app it is a member of
+// MeetingFocusApp and ExecutablePath arrives from another module; in `make axprobe` swiftc compiles
+// it and ExecutablePath.swift into one flat module, where there is no module to import. Sharing the
+// file is deliberate — see the Makefile: a second copy of this normalisation would be free to drift
+// from the one detection actually uses.
+#if canImport(MeetingFocusCore)
+import MeetingFocusCore
+#endif
 
 /// Maps a process id to the bundle identifier of the application that *owns* it.
 ///
@@ -37,18 +45,11 @@ struct BundleIdentifierResolver {
     }
 
     private static func resolve(pid: pid_t) -> String? {
-        if let path = executablePath(pid: pid) {
-            var url = URL(fileURLWithPath: path)
-            var outermost: URL?
-            while url.pathComponents.count > 1 {
-                if url.pathExtension == "app" { outermost = url }
-                url = url.deletingLastPathComponent()
-            }
-            if let appURL = outermost,
-               let bundle = Bundle(url: appURL),
-               let identifier = bundle.bundleIdentifier {
-                return identifier
-            }
+        if let path = executablePath(pid: pid),
+           let appURL = ExecutablePath.outermostApplicationBundle(forExecutableAt: path),
+           let bundle = Bundle(url: appURL),
+           let identifier = bundle.bundleIdentifier {
+            return identifier
         }
         return NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
     }
