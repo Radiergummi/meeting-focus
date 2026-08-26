@@ -186,6 +186,12 @@ install: $(BINARY) ## Replace /Applications/MeetingFocus.app with the built bund
 	fi
 	@rm -rf "$(INSTALLED_APP)"
 	@ditto "$(APP)" "$(INSTALLED_APP)"
+# IconServices caches an app's icon against the bundle directory's modification date, and
+# ditto preserves the source's. Xcode does not touch the .app directory when only its contents
+# change, so a rebuilt bundle installs carrying an mtime from whenever the directory was first
+# created — and macOS keeps serving the icon it cached back then, in Finder and in the privacy
+# panes of System Settings. Changing the icon and reinstalling looks like it did nothing.
+	@touch "$(INSTALLED_APP)"
 	@echo "installed: $(INSTALLED_APP)"
 
 # The opposite prerequisite choice from install, on purpose: install is the frequent chore, run is
