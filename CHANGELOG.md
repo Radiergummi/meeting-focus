@@ -19,6 +19,11 @@ documentation belong in the commit history, not here.
   so a Shortcut, Spotlight or `shortcuts run` can set and read the meeting state from outside the
   app. `Get Meeting Status` returns a plain `Bool` rather than a richer entity, so a Shortcuts `If`
   block can branch on it without a string comparison.
+- An AppleScript dictionary, so `osascript`, `tell application` and any other Apple Events client
+  can read and set meeting state the same way the App Intents do — `in meeting`, `meeting state`,
+  `meeting title`, `manual` and `override expires` as properties, plus `set meeting state … for …
+  titled …` and `clear meeting override` as commands. Script Editor's Open Dictionary shows the
+  full terminology.
 
 ## [0.1.1] — 2026-08-26
 

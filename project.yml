@@ -89,6 +89,10 @@ targets:
         # Driving Shortcuts raises an Automation prompt attributed to this app; without a usage
         # description macOS turns that into a silent denial.
         NSAppleEventsUsageDescription: MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.
+        # Receiving Apple Events, which is the opposite direction from NSAppleEventsUsageDescription
+        # above — that one covers this app *sending* them to Shortcuts.
+        NSAppleScriptEnabled: true
+        OSAScriptingDefinition: MeetingFocus.sdef
         # Auto-update feed. Repoint this one value to move the appcast.
         SUFeedURL: https://meetingfocus.mazetti.me/appcast.xml
         SUPublicEDKey: PF6+rOJ1fFGZkt/v+OtImnW0UyQvGlRvafdlDWPusOM=

@@ -112,6 +112,28 @@ from the outside rather than being driven by it:
 **If the actions do not appear in Shortcuts:** macOS indexes an app's intents only once its bundle
 is registered with Launch Services. Launch MeetingFocus once from `/Applications`, then look again.
 
+## Controlling MeetingFocus from AppleScript
+
+The same actions are also reachable from `osascript`, `tell application` and any other Apple
+Events client — useful from a shell script or another scriptable app, where App Intents are not
+reachable:
+
+```sh
+osascript -e 'tell application "MeetingFocus" to get meeting state'
+osascript -e 'tell application "MeetingFocus" to set in meeting to true'
+osascript -e 'tell application "MeetingFocus" to get in meeting'
+osascript -e 'tell application "MeetingFocus" to set meeting state to true for 5 titled "Deep work"'
+osascript -e 'tell application "MeetingFocus" to get override expires'
+osascript -e 'tell application "MeetingFocus" to clear meeting override'
+```
+
+`meeting state`, `manual` and `override expires` are read-only; `in meeting` is the writable
+switch that takes the default hour, the same as the menu. `set meeting state … for … titled …` is
+the only form that can name a duration and a title together. The dictionary is visible from Script
+Editor's File → Open Dictionary…, and, like any Apple Events client, the first call raises an
+Automation permission prompt attributed to the calling app (Terminal, typically) — that is macOS's
+usual TCC gate, not a MeetingFocus permission.
+
 ## When detection breaks
 
 The Teams detector matches internal HTML element ids that Microsoft can rename in any release.
