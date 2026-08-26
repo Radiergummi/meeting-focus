@@ -76,6 +76,8 @@ xcodebuild -exportArchive -archivePath "$ARCHIVE" \
 
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
 DMG="$BUILD_DIR/MeetingFocus-$VERSION.dmg"
+# A writable intermediate, discarded once the compressed image is built. See below for why.
+RW_DMG="$BUILD_DIR/MeetingFocus-$VERSION-rw.dmg"
 
 step "Verifying the signature"
 codesign --verify --deep --strict --verbose=2 "$APP"
@@ -119,9 +121,22 @@ step "Building the disk image"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
-rm -f "$DMG"
+# The mounted volume shows the app's own icon rather than the generic disk image. actool writes
+# this .icns beside Assets.car when it compiles Icons/MeetingFocus.icon, so the download and the
+# app it carries come from one drawing — nothing here to redraw when the icon changes.
+cp "$APP/Contents/Resources/MeetingFocus.icns" "$STAGE/.VolumeIcon.icns"
+rm -f "$DMG" "$RW_DMG"
+# Finder only reads .VolumeIcon.icns when the volume carries the custom-icon flag, and that flag
+# can only be set on a mounted, writable volume. Hence read-write first, flag it, then compress —
+# a UDZO image created directly would carry the file and ignore it.
 hdiutil create -volname "MeetingFocus $VERSION" -srcfolder "$STAGE" \
-    -ov -format UDZO "$DMG" >/dev/null
+    -ov -format UDRW "$RW_DMG" >/dev/null
+MOUNT=$(hdiutil attach "$RW_DMG" -nobrowse -noverify | grep -o '/Volumes/.*' | head -1)
+[[ -n "$MOUNT" ]] || { echo "could not mount $RW_DMG" >&2; exit 1; }
+SetFile -a C "$MOUNT"
+hdiutil detach "$MOUNT" >/dev/null
+hdiutil convert "$RW_DMG" -format UDZO -o "$DMG" >/dev/null
+rm -f "$RW_DMG"
 
 # The disk image needs its own signature and ticket. Stapling only the app leaves the download
 # itself unsigned, which Gatekeeper reports as "no usable signature" when the DMG is assessed.

@@ -15,6 +15,15 @@ struct OnboardingRow: Identifiable {
     }
 }
 
+/// What sits at the top of a page. Every step but the first names an SF Symbol for its subject;
+/// the welcome step's subject *is* the app, so it shows the app's own icon — the same drawing the
+/// user just saw in the installer and in Finder, which is what makes the window recognisable as
+/// belonging to the thing they installed.
+enum OnboardingGlyph {
+    case symbol(String)
+    case appIcon
+}
+
 /// The shape macOS uses for a first-run sheet — matched against Apple's own Platform SSO setup pane.
 ///
 /// Two details that are easy to get backwards, both taken from that reference:
@@ -37,7 +46,7 @@ struct OnboardingRow: Identifiable {
 /// aligned with the content column's leading edge, not the card's raw corner; its exact position
 /// is a known, accepted limitation and not worth further iteration.
 struct OnboardingPage<Actions: View>: View {
-    let symbol: String
+    let glyph: OnboardingGlyph
     let title: LocalizedStringKey
     let message: LocalizedStringKey
     var rows: [OnboardingRow] = []
@@ -75,10 +84,26 @@ struct OnboardingPage<Actions: View>: View {
                 }
                 .frame(height: chevronHeight, alignment: .leading)
 
-                Image(systemName: symbol)
-                    .font(.system(size: 34, weight: .regular))
-                    .foregroundStyle(.tint)
-                    .padding(.top, 24)
+                Group {
+                    switch glyph {
+                    case .symbol(let name):
+                        Image(systemName: name)
+                            .font(.system(size: 34, weight: .regular))
+                            .foregroundStyle(.tint)
+                    case .appIcon:
+                        // `applicationIconImage` rather than a bundled copy: it resolves whatever
+                        // the running bundle's icon actually is, so this cannot drift from the one
+                        // compiled from Icons/MeetingFocus.icon. Sized to roughly match a 34pt
+                        // symbol once the icon's own transparent margin is taken off.
+                        Image(nsImage: NSApp.applicationIconImage)
+                            .resizable()
+                            .frame(width: 64, height: 64)
+                            // Decorative. The name it would otherwise be announced under is a file
+                            // name, and the headline below already says which app this is.
+                            .accessibilityHidden(true)
+                    }
+                }
+                .padding(.top, 24)
 
                 Text(title)
                     .font(.system(size: 15, weight: .bold))

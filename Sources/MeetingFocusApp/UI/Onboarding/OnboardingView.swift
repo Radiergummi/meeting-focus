@@ -33,7 +33,7 @@ struct OnboardingView: View {
 
     private var welcome: some View {
         OnboardingPage(
-            symbol: "video.fill",
+            glyph: .appIcon,
             title: "Welcome to MeetingFocus",
             message: "It notices when you join a meeting and turns on a Focus for you, then turns it off again when the meeting ends.",
             rows: [
@@ -68,7 +68,7 @@ struct OnboardingView: View {
         // piece of work, and once a second one lands this copy would need rewriting the moment it
         // singled one out.
         OnboardingPage(
-            symbol: "accessibility",
+            glyph: .symbol("accessibility"),
             title: "Let MeetingFocus see your meetings",
             message: """
                 Accessibility permission lets MeetingFocus read the windows of your meeting apps, \
@@ -109,7 +109,7 @@ struct OnboardingView: View {
 
     private var finish: some View {
         OnboardingPage(
-            symbol: "checkmark.circle.fill",
+            glyph: .symbol("checkmark.circle.fill"),
             title: "You are set up",
             message: "MeetingFocus lives in your menu bar and starts working straight away.",
             rows: [

@@ -24,7 +24,7 @@ struct OnboardingFocusStep: View {
 
     var body: some View {
         OnboardingPage(
-            symbol: "moon.fill",
+            glyph: .symbol("moon.fill"),
             title: "Turn on Do Not Disturb for meetings",
             message: installed ? installedMessage : pendingMessage,
             // There is no way to read which Focus modes exist without Full Disk Access, so the

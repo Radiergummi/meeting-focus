@@ -27,7 +27,7 @@
             }
           },
           "glass" : false,
-          "image-name" : "MeetingFocus 2.png",
+          "image-name" : "MeetingFocus-2.png",
           "name" : "MeetingFocus 2"
         },
         {
@@ -67,7 +67,7 @@
               }
             }
           ],
-          "image-name" : "MeetingFocus 3.png",
+          "image-name" : "MeetingFocus-3.png",
           "name" : "MeetingFocus 3"
         }
       ],

@@ -173,10 +173,15 @@ Caveats found alongside, all of which bear on M2 and none of which were known be
 
 ## P2 — Requested features
 
-### 8. App icon
-There is no asset catalogue and no `ASSETCATALOG_COMPILER_APPICON_NAME`, so the app ships with the
-generic placeholder icon in Finder, Login Items and the update dialog. The menu bar itself uses an
-SF Symbol and is fine.
+### 8. App icon — shipped
+`Icons/MeetingFocus.icon` is an Icon Composer bundle, named by `ASSETCATALOG_COMPILER_APPICON_NAME`
+and compiled by actool into `Assets.car`, so Finder, Login Items and the update dialog all show it.
+The same compile step emits `MeetingFocus.icns` inside the bundle, which the release script reuses
+as the disk image's volume icon and the onboarding welcome step reads back via
+`NSApp.applicationIconImage` — one drawing behind all four, with nothing to redraw by hand.
+
+The menu bar deliberately still uses an SF Symbol: it has to carry meeting state, which a fixed app
+icon cannot.
 
 ### 9. One-click Focus setup — shipped
 A four-step onboarding window now installs two locally signed Do Not Disturb shortcuts and selects

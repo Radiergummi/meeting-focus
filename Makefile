@@ -72,8 +72,9 @@ SWIFT_SOURCES := $(shell find Sources Tests Tools -type f -name '*.swift')
 TEST_INPUTS := Package.swift $(shell find Sources/MeetingFocusCore Tests ! -name '.*') \
 	$(shell find Sources/MeetingFocusApp ! -name '.*')
 # Resources/ is a signing and behaviour input: teams-markers.json is what detection matches on, so
-# an edit there must invalidate the build even though no Swift file changed.
-BUILD_SOURCES := $(shell find Sources/MeetingFocusApp Resources ! -name '.*')
+# an edit there must invalidate the build even though no Swift file changed. Icons/ is one for the
+# same reason: the app icon is compiled into the bundle, so redrawing it must rebuild.
+BUILD_SOURCES := $(shell find Sources/MeetingFocusApp Resources Icons ! -name '.*')
 
 .PHONY: help all test lint generate build axprobe xcstrings smoke install run release publish clean
 

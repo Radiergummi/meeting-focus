@@ -13,6 +13,13 @@ documentation belong in the commit history, not here.
 
 ## [Unreleased]
 
+### Added
+
+- An app icon. MeetingFocus is no longer the generic placeholder in Finder, in Login Items or in
+  the update dialog, the disk image you download shows it as the volume icon, and the first-run
+  setup window opens with it. The menu bar keeps its own symbol, because that one has to change
+  with the meeting.
+
 ## [0.1.1] — 2026-08-26
 
 ### Added
