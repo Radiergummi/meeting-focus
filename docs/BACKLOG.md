@@ -362,7 +362,24 @@ evidence is gone, removing it from every subject and — where nothing else is l
 ending the meeting authoritatively, with the `.ended` event that releases the Focus. That belongs in
 `MeetingFocusCore`, where it is unit-testable, rather than in the app target, which has no tests.
 
-### 18. `defaultAudioAllowlist` is a hardcoded Swift constant
+### 18. `defaultAudioAllowlist` is a hardcoded Swift constant — done
+Fixed 2026-08-26, and the reasoning below needed correcting first. The C2 analogy is only half
+right: `teams-markers.json` ships *inside a signed bundle*, so a user editing it breaks the
+signature — patchability by data was never a user-facing property, only a contributor-facing one.
+
+So this shipped as both halves. `Resources/audio-allowlist.json` makes covering another application
+a reviewable JSON edit rather than a Swift change; and an optional
+`~/Library/Application Support/MeetingFocus/audio-allowlist.json` lets a user whose application is
+not covered fix it themselves, which is the difference between the app working for them and not.
+The override is additive only — it cannot disable a shipped entry, because a file with no presence
+in the UI is the wrong place to silently switch detection off. Documented in the README; a Settings
+list is the answer if it turns out people need one, and is not built.
+
+The merge rule lives in `MeetingFocusCore.AudioAllowlist` with nine tests, including one that
+decodes the real shipped file and asserts it has not drifted from the built-in fallback — two
+copies of one list being exactly what diverges unnoticed.
+
+Original note:
 Covering a new meeting app in the audio tier needs an app release, not a data change —
 `MeetingMonitor.swift` holds the allowlist inline. C2 externalised the Teams markers to
 `Resources/teams-markers.json` for exactly this reason: a fix should be a data change, not a code

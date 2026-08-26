@@ -7,26 +7,6 @@ import Observation
 @MainActor
 @Observable
 final class MeetingMonitor {
-    /// Applications whose microphone use is treated as evidence of a meeting. Scoped deliberately:
-    /// an unfiltered "is the microphone in use" check matches dictation and speech services —
-    /// `com.electron.wispr-flow` and `com.apple.CoreSpeech` were both observed holding the
-    /// microphone on the development machine, and neither is a meeting.
-    static let defaultAudioAllowlist: Set<String> = [
-        "com.microsoft.teams2",
-        "us.zoom.xos",
-        "com.tinyspeck.slackmacgap",
-        "Cisco-Systems.Spark",
-        "com.webex.meetingmanager",
-        "com.hnc.Discord",
-        "com.google.Chrome",
-        "com.apple.Safari",
-        "org.mozilla.firefox",
-        "org.mozilla.firefoxdeveloperedition",
-        "com.microsoft.edgemac",
-        "company.thebrowser.Browser",
-        "company.thebrowser.dia",
-    ]
-
     private(set) var aggregateState: MeetingState = .idle
     private(set) var activeMeetings: [Meeting] = []
     private(set) var isMonitoring = false
@@ -76,7 +56,9 @@ final class MeetingMonitor {
             machine.retractEvidence(fromDetector: TeamsAccessibilityDetector.detectorID)
         }
         if settings.audioDetectorEnabled {
-            let detector = AudioProcessDetector(allowlist: Self.defaultAudioAllowlist)
+            // Read here rather than once at launch, so that a user editing the override file only
+            // has to toggle the detector rather than relaunch. See `AudioAllowlist.loadResolved`.
+            let detector = AudioProcessDetector(allowlist: AudioAllowlist.loadResolved())
             audioDetector = detector
             consume(detector.evidence)
             try? await detector.start()

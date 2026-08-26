@@ -111,6 +111,32 @@ To re-derive them, watch the log:
 A warning is logged when a window looks like a meeting but no markers match — the signature of a
 rename. Meeting titles are redacted from logs by design.
 
+## Your meeting app isn't detected
+
+The microphone tier only treats *known* meeting applications as evidence, because an unfiltered
+"is the microphone in use" check also matches dictation and speech services, and those are not
+meetings. The shipped list is `Resources/audio-allowlist.json`.
+
+You can add your own without waiting for a release. Create this file:
+
+```sh
+mkdir -p ~/Library/Application\ Support/MeetingFocus
+cat > ~/Library/Application\ Support/MeetingFocus/audio-allowlist.json <<'EOF'
+{ "bundleIdentifiers": ["com.example.yourconferencingapp"] }
+EOF
+```
+
+Its entries are *added* to the shipped ones — it cannot switch off an application MeetingFocus
+already covers. Find an application's identifier with:
+
+```sh
+osascript -e 'id of app "Your App"'
+```
+
+The file is read whenever monitoring starts, so relaunch the app, or toggle **Microphone activity**
+off and on in Settings → Detection. Nothing appears in the UI for this; the log says how many
+entries it read, and says so loudly if the file could not be parsed.
+
 ## Localization
 
 The app ships English and German. `Sources/MeetingFocusApp/Localizable.xcstrings` is hand-authored,

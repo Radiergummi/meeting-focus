@@ -1,0 +1,18 @@
+{
+  "_comment": "Applications whose microphone use counts as a meeting. To add your own without waiting for a release, create ~/Library/Application Support/MeetingFocus/audio-allowlist.json with the same shape; its entries are added to these. Find an application's identifier with: osascript -e 'id of app \"Zoom\"'",
+  "bundleIdentifiers": [
+    "com.microsoft.teams2",
+    "us.zoom.xos",
+    "com.tinyspeck.slackmacgap",
+    "Cisco-Systems.Spark",
+    "com.webex.meetingmanager",
+    "com.hnc.Discord",
+    "com.google.Chrome",
+    "com.apple.Safari",
+    "org.mozilla.firefox",
+    "org.mozilla.firefoxdeveloperedition",
+    "com.microsoft.edgemac",
+    "company.thebrowser.Browser",
+    "company.thebrowser.dia"
+  ]
+}
