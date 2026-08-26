@@ -205,6 +205,8 @@ final class MeetingMonitor {
         let handler = ShortcutsAutomationHandler(
             startShortcutName: settings.startShortcutName,
             endShortcutName: settings.endShortcutName,
+            startShortcutIdentifier: settings.startShortcutIdentifier,
+            endShortcutIdentifier: settings.endShortcutIdentifier,
             onFailure: { [weak self] name, error in
                 Task { @MainActor [weak self] in
                     self?.lastAutomationError = "\(name): \(error.localizedDescription)"

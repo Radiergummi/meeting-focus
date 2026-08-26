@@ -50,6 +50,10 @@ documentation belong in the commit history, not here.
   It now asks for the full interface, and sees all of it. Where it still cannot see, it now says so
   rather than reporting "no meeting", which previously overrode the microphone detector even though
   that one could see the call perfectly well.
+- Renaming either Do Not Disturb shortcut in Shortcuts no longer stops MeetingFocus finding it.
+  The app now remembers which shortcut it is, not only what it is called — so a rename, or running
+  the app in a different language, keeps working. Re-running setup also no longer adds a second
+  copy of a shortcut you already have.
 - Turning a detector on or off in Settings takes effect immediately. It previously did nothing at
   all until the app was next launched.
 - A failed Shortcut no longer leaves its error message in the menu until the app is relaunched. The

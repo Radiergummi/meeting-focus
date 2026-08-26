@@ -1,9 +1,10 @@
+import MeetingFocusCore
 import SwiftUI
 
 struct SettingsView: View {
     @Bindable var settings: AppSettings
     @Bindable var monitor: MeetingMonitor
-    @State private var shortcutNames: [String] = []
+    @State private var shortcuts: [ShortcutListing] = []
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @State private var launchAtLoginError: String?
 
@@ -19,7 +20,7 @@ struct SettingsView: View {
         // shortcut names here rather than on the Automation tab fetches them once per window instead
         // of on every visit to that tab.
         .task {
-            shortcutNames = await ShortcutsAutomationHandler.availableShortcutNames()
+            shortcuts = await ShortcutsAutomationHandler.availableShortcuts()
             launchAtLogin = LaunchAtLogin.isEnabled
         }
     }
@@ -117,8 +118,16 @@ struct SettingsView: View {
         Form {
             Section("Automation") {
                 Toggle("Run Shortcuts on meeting changes", isOn: $settings.automationEnabled)
-                shortcutPicker("When a meeting starts", selection: $settings.startShortcutName)
-                shortcutPicker("When the last meeting ends", selection: $settings.endShortcutName)
+                shortcutPicker(
+                    "When a meeting starts",
+                    name: $settings.startShortcutName,
+                    identifier: $settings.startShortcutIdentifier
+                )
+                shortcutPicker(
+                    "When the last meeting ends",
+                    name: $settings.endShortcutName,
+                    identifier: $settings.endShortcutIdentifier
+                )
 
                 HStack {
                     // There is no public API to set a Focus mode, so a Shortcut is the only
@@ -185,16 +194,31 @@ struct SettingsView: View {
     /// unavailable or the user may want to name one they have not created yet.
     /// `LocalizedStringKey`, not `String`: `Text(String)` renders verbatim, so as a plain string the
     /// two row labels here had catalogue keys that were never looked up — green tests, English UI.
-    private func shortcutPicker(_ title: LocalizedStringKey, selection: Binding<String>) -> some View {
-        HStack {
+    private func shortcutPicker(
+        _ title: LocalizedStringKey,
+        name: Binding<String>,
+        identifier: Binding<String>
+    ) -> some View {
+        // Picking by name is what the user does; recording the identity is what keeps that choice
+        // working after they rename it in Shortcuts. Written through one binding so the two cannot
+        // drift apart. A name typed by hand — the no-shortcuts-listed fallback — resolves to no
+        // identifier, which is correct: we have nothing to record.
+        let selection = Binding(
+            get: { name.wrappedValue },
+            set: { chosen in
+                name.wrappedValue = chosen
+                identifier.wrappedValue = shortcuts.identifier(forName: chosen) ?? ""
+            }
+        )
+        return HStack {
             Text(title)
             Spacer()
-            if shortcutNames.isEmpty {
+            if shortcuts.isEmpty {
                 TextField("Shortcut name", text: selection).frame(width: 200)
             } else {
                 Picker("", selection: selection) {
                     Text("None").tag("")
-                    ForEach(shortcutNames, id: \.self) { Text($0).tag($0) }
+                    ForEach(shortcuts, id: \.name) { Text($0.name).tag($0.name) }
                 }
                 .labelsHidden()
                 .frame(width: 220)

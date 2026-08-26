@@ -347,14 +347,33 @@ Covering a new meeting app in the audio tier needs an app release, not a data ch
 `Resources/teams-markers.json` for exactly this reason: a fix should be a data change, not a code
 change. This list arguably belongs in the same patchable seam.
 
-### 19. The generated shortcut's name doubles as its identifier
-It is localized, and it is what gets stored in `startShortcutName` / `endShortcutName` and passed
-to `shortcuts run`. Automation survives a system-language change, because the stored name is
-written once and read back rather than re-derived — but re-running onboarding after changing the
-system language will not recognise the existing pair under their new-language names and will
-install a duplicate. Fix by storing identity separately from the display name shown in Shortcuts.
+### 19. The generated shortcut's name doubles as its identifier — done
+Fixed 2026-08-26, together with item 20: they were one bug wearing two hats, since both come from
+identity and display name being the same string.
 
-### 20. Retrying a partly-failed install can leave a numbered duplicate
+`shortcuts run` turns out to accept `<shortcut-name-or-identifier>`, and `shortcuts list
+--show-identifiers` prints `Name (UUID)` — so identity was available all along. `AppSettings` now
+stores `startShortcutIdentifier` / `endShortcutIdentifier` beside the names, onboarding records them
+after installing, the Settings picker records one when the user chooses a shortcut by hand, and
+`ShortcutsAutomationHandler` prefers the identifier and falls back to the name. The fallback is what
+carries an installation configured before this existed.
+
+Worth naming because the backlog did not: this also fixes the likelier version of the same bug.
+A user who renames either shortcut in Shortcuts — entirely reasonable, they are their shortcuts —
+used to silently lose their automation. Now it follows the rename.
+
+Parsing lives in `MeetingFocusCore.ShortcutListing` rather than beside the subprocess, because the
+awkward part is the string: a shortcut's *name* may contain parentheses too, so the identifier is
+recognised from the right and confirmed to be a UUID. Six tests, including `Backup (old) (UUID)`
+and `Morning routine (v2)`.
+
+### 20. Retrying a partly-failed install can leave a numbered duplicate — done
+Fixed 2026-08-26 as part of item 19. `OnboardingFocusStep.install()` now installs only the
+directions actually missing, testing for each by stored identifier first and current name second.
+The identifier check is the half that survives a language change, under which the installed pair
+carries names this launch would never recognise.
+
+Original report, kept for the reasoning:
 `OnboardingFocusStep.install()` retries both directions from scratch, with no record of which one
 already succeeded. A timeout on one direction followed by a retry produced `MeetingFocus – Fokus
 aus 1` in Shortcuts during testing. Harmless — `ShortcutsAutomationHandler` binds on exact name, so

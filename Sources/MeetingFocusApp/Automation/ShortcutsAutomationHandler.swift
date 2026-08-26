@@ -42,40 +42,50 @@ struct ShortcutsAutomationHandler: AutomationHandler {
 
     var startShortcutName: String?
     var endShortcutName: String?
+    /// Preferred over the name when set. See `AppSettings.startShortcutIdentifier`: the name is a
+    /// display name, and both we and the user can change it.
+    var startShortcutIdentifier: String?
+    var endShortcutIdentifier: String?
     var onFailure: (@Sendable (String, Error) -> Void)?
     /// Called after a shortcut actually ran, so a stale failure message can be cleared. Not
     /// called when no shortcut is configured — that is neither success nor failure.
     var onSuccess: (@Sendable () -> Void)?
 
     func meetingStarted(_ meeting: Meeting) async {
-        await run(named: startShortcutName, reason: "meeting started")
+        await run(identifier: startShortcutIdentifier, name: startShortcutName, reason: "meeting started")
     }
 
     func meetingEnded(_ meeting: Meeting) async {
-        await run(named: endShortcutName, reason: "meeting ended")
+        await run(identifier: endShortcutIdentifier, name: endShortcutName, reason: "meeting ended")
     }
 
-    private func run(named name: String?, reason: String) async {
-        guard let name, !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+    private func run(identifier: String?, name: String?, reason: String) async {
+        let identifier = identifier?.trimmingCharacters(in: .whitespaces) ?? ""
+        let name = name?.trimmingCharacters(in: .whitespaces) ?? ""
+        // The identifier survives a rename and a change of system language; the name is what an
+        // older installation has, and what a failure message has to say out loud.
+        let target = identifier.isEmpty ? name : identifier
+        guard !target.isEmpty else {
             Log.automation.debug("\(reason): no shortcut configured, skipping")
             return
         }
         do {
-            try await Self.run(shortcutNamed: name)
+            try await Self.run(shortcut: target)
             Log.automation.info("\(reason): ran shortcut")
             onSuccess?()
         } catch {
             Log.automation.error("\(reason): shortcut failed: \(error.localizedDescription)")
-            onFailure?(name, error)
+            onFailure?(name.isEmpty ? target : name, error)
         }
     }
 
-    static func run(shortcutNamed name: String) async throws {
+    /// Takes a name *or* an identifier — `shortcuts run` accepts either.
+    static func run(shortcut nameOrIdentifier: String) async throws {
         guard FileManager.default.isExecutableFile(atPath: toolURL.path) else { throw Failure.toolMissing }
 
         let process = Process()
         process.executableURL = toolURL
-        process.arguments = ["run", name]
+        process.arguments = ["run", nameOrIdentifier]
         let errorPipe = Pipe()
         process.standardError = errorPipe
         process.standardOutput = FileHandle.nullDevice
@@ -100,22 +110,24 @@ struct ShortcutsAutomationHandler: AutomationHandler {
         }
     }
 
-    /// Used by Settings to offer real shortcut names instead of asking the user to type one.
-    static func availableShortcutNames() async -> [String] {
+    /// Used by Settings to offer real shortcut names instead of asking the user to type one, and
+    /// by onboarding to learn the identifier of a shortcut it has just installed.
+    static func availableShortcuts() async -> [ShortcutListing] {
         guard FileManager.default.isExecutableFile(atPath: toolURL.path) else { return [] }
         let process = Process()
         process.executableURL = toolURL
-        process.arguments = ["list"]
+        process.arguments = ["list", "--show-identifiers"]
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice
         guard (try? process.run()) != nil else { return [] }
         let data = (try? pipe.fileHandleForReading.readToEnd()) ?? Data()
         process.waitUntilExit()
-        return String(data: data, encoding: .utf8)?
-            .split(separator: "\n")
-            .map(String.init)
-            .filter { !$0.isEmpty }
-            .sorted() ?? []
+        let output = String(data: data, encoding: .utf8) ?? ""
+        return ShortcutListing.parse(output).sorted { $0.name < $1.name }
+    }
+
+    static func availableShortcutNames() async -> [String] {
+        await availableShortcuts().map(\.name)
     }
 }

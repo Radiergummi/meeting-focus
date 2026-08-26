@@ -12,6 +12,8 @@ final class AppSettings {
         static let automationEnabled = "automationEnabled"
         static let startShortcutName = "startShortcutName"
         static let endShortcutName = "endShortcutName"
+        static let startShortcutIdentifier = "startShortcutIdentifier"
+        static let endShortcutIdentifier = "endShortcutIdentifier"
         static let endCooldownSeconds = "endCooldownSeconds"
         static let showMenuBarIcon = "showMenuBarIcon"
         static let onboardingCompleted = "onboardingCompleted"
@@ -39,6 +41,8 @@ final class AppSettings {
         automationEnabled = defaults.bool(forKey: Key.automationEnabled)
         startShortcutName = defaults.string(forKey: Key.startShortcutName) ?? ""
         endShortcutName = defaults.string(forKey: Key.endShortcutName) ?? ""
+        startShortcutIdentifier = defaults.string(forKey: Key.startShortcutIdentifier) ?? ""
+        endShortcutIdentifier = defaults.string(forKey: Key.endShortcutIdentifier) ?? ""
         endCooldownSeconds = defaults.double(forKey: Key.endCooldownSeconds)
         showMenuBarIcon = defaults.bool(forKey: Key.showMenuBarIcon)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
@@ -60,6 +64,19 @@ final class AppSettings {
     }
     var endShortcutName: String = "" {
         didSet { defaults.set(endShortcutName, forKey: Key.endShortcutName) }
+    }
+    /// The shortcut's stable identity, stored beside the name rather than instead of it.
+    ///
+    /// A shortcut's name is its *display* name: localized when we generate it, and freely editable
+    /// by the user in Shortcuts. Either changing breaks a stored name, and `shortcuts run` accepts
+    /// an identifier just as happily. Empty on an installation configured before this existed, or
+    /// where the tool listed no identifier — hence a fallback to the name rather than a hard
+    /// dependency on this being set.
+    var startShortcutIdentifier: String = "" {
+        didSet { defaults.set(startShortcutIdentifier, forKey: Key.startShortcutIdentifier) }
+    }
+    var endShortcutIdentifier: String = "" {
+        didSet { defaults.set(endShortcutIdentifier, forKey: Key.endShortcutIdentifier) }
     }
     var endCooldownSeconds: Double = 45 {
         didSet { defaults.set(endCooldownSeconds, forKey: Key.endCooldownSeconds) }

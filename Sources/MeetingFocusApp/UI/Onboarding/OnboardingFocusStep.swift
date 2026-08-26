@@ -84,23 +84,54 @@ struct OnboardingFocusStep: View {
             FocusShortcutInstaller.shortcutName(for: .turnOff),
         ]
         Task {
+            let existing = await ShortcutsAutomationHandler.availableShortcuts()
             do {
-                try FocusShortcutInstaller.install(direction: .turnOn)
-                try FocusShortcutInstaller.install(direction: .turnOff)
+                // Install only what is actually missing. Shortcuts does not replace by name, it
+                // appends " 1" — so a retry after one direction timed out used to add a second copy
+                // of the direction that had already succeeded, and ask the user to confirm an Add
+                // they had already given.
+                if !isPresent(names[0], storedIdentifier: settings.startShortcutIdentifier, among: existing) {
+                    try FocusShortcutInstaller.install(direction: .turnOn)
+                }
+                if !isPresent(names[1], storedIdentifier: settings.endShortcutIdentifier, among: existing) {
+                    try FocusShortcutInstaller.install(direction: .turnOff)
+                }
             } catch {
                 failure = error.localizedDescription
                 installing = false
                 return
             }
             if await FocusShortcutInstaller.awaitInstalled(names: names) {
+                let listings = await ShortcutsAutomationHandler.availableShortcuts()
                 // The whole point: the user never types a shortcut name.
                 settings.startShortcutName = names[0]
                 settings.endShortcutName = names[1]
+                // Identity recorded separately from the display name, so that renaming either
+                // shortcut in Shortcuts — or running the app in another language — does not
+                // silently break the automation. See `AppSettings.startShortcutIdentifier`.
+                settings.startShortcutIdentifier = listings.identifier(forName: names[0]) ?? ""
+                settings.endShortcutIdentifier = listings.identifier(forName: names[1]) ?? ""
                 installed = true
             } else {
                 failure = String(localized: "The shortcuts were not added. You can try again, or set them up in Settings.")
             }
             installing = false
         }
+    }
+
+    /// Whether one direction's shortcut is already in the user's library.
+    ///
+    /// The identifier is checked first and the name second, because the name is the half that
+    /// moves: it is localized, so the pair installed under a different system language carries
+    /// names this launch would never recognise, and the user is free to rename either in Shortcuts.
+    private func isPresent(
+        _ name: String,
+        storedIdentifier: String,
+        among listings: [ShortcutListing]
+    ) -> Bool {
+        if !storedIdentifier.isEmpty, listings.contains(where: { $0.identifier == storedIdentifier }) {
+            return true
+        }
+        return listings.contains { $0.name == name }
     }
 }
