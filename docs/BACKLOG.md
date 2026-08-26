@@ -1,6 +1,6 @@
 # Backlog
 
-Everything known to be outstanding as of 2026-08-25, ordered by priority within each section.
+Everything known to be outstanding as of 2026-08-26, ordered by priority within each section.
 Items carry the reason they matter, because a task without its rationale gets done wrong or
 dropped for the wrong reason.
 
@@ -24,29 +24,41 @@ has none — the claim is currently false for every existing download, and the a
 that same unattested build. Fix by tagging a release through `.github/workflows/release.yml` and
 either replacing `v0.1.0` or superseding it with `v0.1.1`.
 
-**Blocked on:** repo secrets (item 2).
+**No longer blocked**, and `v0.1.1` is staged: `project.yml` reads `0.1.1`, `CHANGELOG.md` has a
+`[0.1.1]` section — including the onboarding entry it was missing, which README documented and the
+changelog did not — and `Scripts/preflight.sh 0.1.1` passes every check but one. The exception is
+the working tree, dirty with the in-progress ⌥ diagnostics work; `git tag` tags HEAD, so that has to
+land first or it simply would not ship. What remains after it does: push the local commits, then
+`git tag v0.1.1 && git push origin v0.1.1`.
 
-### 2. Add the release secrets, then prove the release workflow runs
-`.github/workflows/release.yml` has never executed. Required repository secrets:
+### 2. Add the release secrets — done; the workflow itself is still unproven
+Added 2026-08-26, split by what each thing actually is:
 
-| Secret | Contents |
-|---|---|
-| `SIGNING_DATA` | base64 of the Developer ID Application `.p12` |
-| `SIGNING_PASSWORD` | its export password |
-| `APPLE_API_KEY_DATA` | contents of the App Store Connect `.p8` |
-| `APPLE_API_KEY_ID` | key id |
-| `APPLE_API_ISSUER` | issuer id |
+| Name | Kind | Contents |
+|---|---|---|
+| `SIGNING_DATA` | secret | base64 of the Developer ID Application `.p12` |
+| `SIGNING_PASSWORD` | secret | its export password |
+| `APPLE_API_KEY_DATA` | secret | contents of the App Store Connect `.p8` |
+| `APPLE_API_KEY_ID` | variable | key id |
+| `APPLE_API_ISSUER` | variable | issuer id |
+
+The last two are variables rather than secrets deliberately: they are identifiers, useless without
+the `.p8`, and `notarytool` puts them in its own output and file paths anyway. `release.yml` was
+written against `secrets.` for all five — and `secrets.NAME` for a name that is a *variable*
+expands to the empty string, so `signing.sh` would have aborted the run before anything was built.
+It now reads those two through `vars.`.
 
 Note what this asks: the Developer ID key must exist on a runner, in an ephemeral keychain on a
 disposable VM. The alternative is every user trusting an unverifiable binary. It is a real trade
 and should be made knowingly, not by default.
 
-### 3. Back up the Sparkle private signing key
-It exists **only** in the maintainer's login keychain as "Private key for signing Sparkle updates".
-Lose it and no installed copy can ever be updated — every user would have to reinstall by hand.
-Since detection depends on Teams element ids that *will* be renamed, this key is the single point
-of failure for the project's ability to fix itself. Export command is in the README; store it in a
-password manager and delete the file.
+Whether the workflow *runs* is a separate claim, and still an untested one — that is item 1.
+
+### 3. Back up the Sparkle private signing key — done
+Backed up 2026-08-26, confirmed by the maintainer. Kept here rather than deleted because the reason
+still governs: the key is the single point of failure for the project's ability to fix itself, since
+detection depends on Teams element ids that *will* be renamed. Anything that regenerates it — a new
+machine, a wiped keychain — re-opens this item.
 
 ### 4. Verify the app's in-meeting path end to end, at least once
 Never observed. The app has only ever reported `notInMeeting`. The marker logic is byte-identical
@@ -103,10 +115,50 @@ real; the ids are guesses. Capture the lobby with `axprobe ids com.microsoft.tea
 in a pre-join screen, then either fix them or delete them. Shipping a guess that silently never
 matches is worse than shipping no `joining` state.
 
-### 7. Confirm whether Graph's `InAMeeting` is calendar-derived
-Blocks the provider tier (M2). If the activity is partly derived from calendar rather than actual
-call state, it will report a meeting the user never joined — which would make it unusable as
-anything but weak corroboration.
+### 7. Confirm whether Graph's `InAMeeting` is calendar-derived — answered: yes
+Answered 2026-08-26 from Microsoft's own documentation. It is calendar-derived, explicitly and by
+design:
+
+> The `setPresence` method doesn't support setting the presence states **Out of office (OOF)** or
+> **In a meeting** directly. These states are automatically managed based on calendar events and
+> mailbox configurations […] The **"In a meeting"** state is automatically reflected during
+> scheduled calendar meeting events and doesn't require manual presence updates.
+> — [Manage presence state using the Microsoft Graph API](https://learn.microsoft.com/en-us/graph/cloud-communications-manage-presence-state)
+
+The Teams admin documentation draws the line in the same place, and it is the useful half of the
+finding — different states come from *different sources*:
+
+> a user's status is based on user activity (whether they're **Available** or **Away**); on the
+> state of the Teams app (for example, whether they're **In a call** or **Presenting**); and on
+> their Outlook calendar (for example, whether they're **In a meeting**).
+> — [User presence in Teams](https://learn.microsoft.com/en-us/microsoftteams/presence-admins)
+
+**So `inAMeeting` means "a meeting is on this person's calendar right now", not "this person
+joined anything".** It fires for a declined-but-not-removed invitation, for a meeting slept
+through, for a calendar block someone uses as focus time. As a meeting signal it is exactly the
+false positive this item feared.
+
+**This does not sink the provider tier; it re-points it.** `inACall` and `presenting` come from the
+Teams application's own state, which is real call state. M2 should key on those two and treat
+`inAMeeting` as calendar noise — usable, at most, as `corroborating` alongside something else.
+
+Caveats found alongside, all of which bear on M2 and none of which were known before:
+
+- **Which field carries it is documented inconsistently.** The permutation table gives
+  `availability / activity` as `busy / inAMeeting` and `busy / inACall`, but the
+  [presence resource](https://learn.microsoft.com/en-us/graph/api/resources/presence?view=graph-rest-1.0)
+  lists `inACall`, `inAMeeting`, `presenting` and `focusing` under **availability**, and omits them
+  from **activity**. The two pages contradict each other, so an implementation should match on
+  either field rather than trusting one.
+- **Latency is minutes, not seconds.** "Because the Teams client uses poll mode, it takes a few
+  minutes to update the presence status" — and mailboxes hosted on-premises are documented at up to
+  a *one hour* delay. Far too slow to drive a Focus on its own; this is corroboration, not a trigger.
+- **A user can override presence by hand**, and a manual Busy or Do-not-disturb persists for a day.
+- **Presence aggregates across every device**, resolving to whichever the user touched most
+  recently — the existing note that remote evidence describes the *user* rather than this Mac is
+  not just a privacy framing, it is literally how the value is computed.
+- Presence *does* support change notifications, so the transport note below is about the cost of
+  webhooks, not about whether subscriptions exist at all.
 
 ---
 
@@ -125,6 +177,57 @@ from unidentified sources as untrusted — no longer holds: the shortcut is gene
 the user's own machine, so nothing unsigned is ever shipped and there is no bundled file to trust.
 See `constraints.md` A4 and C4.
 
+### 22. Calendar tier — meeting names, and a nudge on borderline starts
+Decided 2026-08-26: the calendar **names** meetings and may **weakly corroborate** a start. It never
+starts or ends one on its own.
+
+That boundary is the whole design, and it comes straight out of item 7. Graph's `inAMeeting` is
+calendar-derived, and reading the same calendar locally does not make it any more truthful about
+whether the user actually *joined*: a declined-but-undeleted invitation, a meeting slept through and
+a focus-time block all look identical to attendance. What the calendar knows is what was *scheduled*.
+
+**Why local EventKit rather than the provider integrations of item 10.** `EKEventStore` reads
+whichever accounts the user already has in Calendar.app, which for most people includes their
+Microsoft 365 or Google calendar. That means no OAuth flow, no app registration, no Keychain token
+storage, no public HTTPS endpoint for webhooks, and — decisively — no corporate tenant admin who can
+refuse the registration outright, which is the reason item 10 says the provider tier can never be the
+foundation. This does not merely simplify M2's Microsoft Graph row; it removes most of its purpose.
+It also largely supersedes item 12, which exists only to source meeting *names* from browser tabs; a
+calendar event is a better title than a tab title, and the audio tier currently produces no title at
+all for Zoom, Meet or Slack.
+
+**Rules, most of them inherited rather than invented:**
+
+- Only events the user is actually busy for. Skip `EKEventAvailability.free`, and skip declined
+  invitations. This mirrors Teams' own behaviour — a calendar item must be marked Busy or Out of
+  Office before it affects presence — so the same events count in both systems.
+- Two events overlapping now: drop the name, keep the state. Item 12's ambiguity rule, unchanged.
+  Ambiguity must not guess.
+- Corroboration means shortening `corroboratingStartGrace` (3s today) while a busy event is in
+  progress, and nothing more. `EvidenceFusion` already resolves highest-confidence-first, so
+  calendar input entered as `corroborating` can never override the Teams AX tier's `definitive`
+  verdict.
+
+**Unresolved, and the reason this is not simply another detector:** `MeetingEvidence.subjectID` is a
+bundle identifier, and `MeetingStateMachine` keys its subjects by application. A calendar event has
+no process, so it does not fit the `MeetingDetector` protocol. Two ways out, and the choice can be
+deferred:
+
+1. Treat the calendar as *enrichment* consulted when a meeting is created, not as evidence at all.
+   Enough for the job as scoped, and it keeps the subject model untouched.
+2. Attribute an event to a bundle by its join URL — `teams.microsoft.com/l/meetup-join`,
+   `zoom.us/j/`, `meet.google.com` — which makes it fit the protocol properly, but reports nothing
+   for events with no link, meaning in-person and phone meetings.
+
+(1) is the smaller change and covers what was decided; (2) only becomes worth it if the corroboration
+half needs to be per-application.
+
+**Costs.** A second TCC prompt (`requestFullAccessToEvents`, with
+`NSCalendarsFullAccessUsageDescription` in the bundle — the deployment target is macOS 26, so the
+pre-macOS-14 `requestAccess(to:)` path does not apply), landing right after the Accessibility prompt
+that onboarding was just built around. Reading someone's calendar also *feels* more invasive than
+reading microphone activity, so this wants its own toggle and probably ships default-off.
+
 ---
 
 ## P3 — Roadmap
@@ -134,7 +237,7 @@ One provider end to end, plus Keychain storage and an OAuth flow. Transports res
 
 | Provider | Signal | Transport for a desktop app |
 |---|---|---|
-| Microsoft Graph | `presence.activity` = `InAMeeting` | poll `GET /me/presence`; subscriptions need a public HTTPS endpoint and expire hourly |
+| Microsoft Graph | `inACall` / `presenting` — **not** `inAMeeting`, which is calendar-derived (item 7) | poll `GET /me/presence`; subscriptions need a public HTTPS endpoint and expire hourly |
 | Slack | `user_huddle_changed` | Socket Mode — WebSocket, no public endpoint |
 | Zoom | `user.presence_status_updated` | webhooks need an endpoint; reported inconsistent desktop vs mobile |
 | Google Meet | conference started/ended | Workspace Events API + Pub/Sub — heaviest |
@@ -157,6 +260,10 @@ must not guess.
 
 Do **not** build tab-level state tracking: we need a boolean plus an optional title, not per-tab
 precision.
+
+**Largely superseded by item 22.** Naming is this item's only purpose, and a calendar event is a
+better title than a tab title, for less work and no per-browser study. Keep this only for meetings
+with no calendar entry at all — an ad-hoc Meet link someone was sent in chat.
 
 ### 13. UI tests
 No UI test target. Pensieve's pattern exports and restores the app's `UserDefaults` domain around
@@ -207,6 +314,23 @@ Toggling a detector in Settings does not take effect until the app relaunches �
 but nothing calls it. Pre-existing, not introduced by onboarding, but it is why onboarding has no
 detector step: a toggle that silently does nothing until relaunch is worse than no toggle at all.
 Fix this before adding one.
+
+**Calling `restart()` is not on its own the fix, and shipping only that would be a regression.**
+`restart()` tears the detectors down and builds them again, but it does not touch
+`MeetingStateMachine`, which keeps the evidence they already produced. When every piece of a
+subject's evidence has aged past `evidenceTTL` (30s), `EvidenceFusion.resolve` returns `nil`, and
+`MeetingStateMachine.evaluate` then *holds the previous state* rather than assuming idleness —
+deliberately, so that a temporary loss of Accessibility can never end a meeting. Nothing else can
+clear it: the only authoritative reset is `applicationTerminated`.
+
+So turning off the detector that is currently the sole evidence for a live meeting would strand the
+app `inMeeting` permanently — menu stuck, and the end shortcut never fired, meaning the user's Focus
+stays on until they quit the meeting app or relaunch. That is worse than today's do-nothing toggle.
+
+The fix therefore needs evidence retraction as well: a way to tell the machine that a detector's
+evidence is gone, removing it from every subject and — where nothing else is left saying otherwise —
+ending the meeting authoritatively, with the `.ended` event that releases the Focus. That belongs in
+`MeetingFocusCore`, where it is unit-testable, rather than in the app target, which has no tests.
 
 ### 18. `defaultAudioAllowlist` is a hardcoded Swift constant
 Covering a new meeting app in the audio tier needs an app release, not a data change —

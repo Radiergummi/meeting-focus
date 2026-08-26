@@ -52,6 +52,40 @@ assumption.
 shortcut that targets Do Not Disturb and tells the user how to retarget it; the user's own Focus
 modes remain reachable to *them* inside Shortcuts, just not enumerable by *us*.
 
+### A5. Teams' own local integration API was retired before we could use it
+Microsoft shipped exactly the API this project wants, and withdrew it. The **Teams third-party app
+API** was a WebSocket the desktop client opened on `ws://localhost:8124`, gated behind Settings →
+Privacy → Third-party app API and a pairing prompt the user had to approve. It pushed meeting state
+on change — `isInMeeting`, plus `isMuted`, `isVideoOn`, `isHandRaised`, `isRecordingOn`,
+`isSharing` — and it worked on macOS against `com.microsoft.teams2`, this exact bundle. It is what
+the Elgato Stream Deck integration used.
+
+Retired **2026-06-30** on Windows and Mac, announced as message centre item MC1266901. Microsoft
+describes it as "a limited, non-published integration method" that is "no longer supported or
+maintained", and says the Settings → Privacy section that gated it "will be removed". No
+replacement is named — only that the change "does not affect supported Microsoft Teams integration
+models or published Microsoft Graph APIs", neither of which reports whether *this Mac* is in a call.
+
+Measured here on 2026-08-26, eight weeks after the retirement date: Teams
+`26213.1006.5011.1671` running, `lsof -nP -iTCP:8124` finds nothing listening. Read as
+corroboration rather than proof — the socket may have only ever opened once the API was enabled and
+paired, and this machine never enabled it, so its absence is consistent with retirement without
+demonstrating it. The check that would settle it is whether the Teams client still offers Settings →
+Privacy → Third-party app API at all.
+
+One ambiguity, recorded rather than smoothed over: the announcement's own wording is about
+*control* — mute, camera, background blur, hand, reactions, end meeting — and never explicitly
+mentions read-only state events, which is all this project would have wanted. But the pairing
+toggle that gated the whole socket is removed, and a socket nobody can authorise is not a signal
+source.
+
+**Corners us?** No — it retroactively justifies A2. Scraping `AXDOMIdentifier` values is not a
+shortcut taken in preference to a supported API; the supported-looking alternative died two months
+before this entry was written. Recorded because it will be proposed again: the WebSocket API is
+well documented in blog posts and third-party libraries that have not caught up with its
+retirement, and "why not just use the Teams API?" is a reasonable question with a non-obvious
+answer.
+
 ---
 
 ## B. Constraints removed by dropping the App Store
