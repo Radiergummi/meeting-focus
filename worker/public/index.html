@@ -1,25 +1,86 @@
 <!doctype html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MeetingFocus</title>
-<style>
-  :root { color-scheme: light dark; }
-  body { font: 16px/1.6 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-         max-width: 34rem; margin: 12vh auto; padding: 0 1.5rem; }
-  h1 { font-size: 1.6rem; margin-bottom: .25rem; }
-  p.sub { color: color-mix(in oklab, currentColor 60%, transparent); margin-top: 0; }
-  a.dl { display: inline-block; margin-top: 1.5rem; padding: .6rem 1.1rem; border-radius: .5rem;
-         background: currentColor; text-decoration: none; }
-  a.dl span { color: Canvas; font-weight: 600; }
-  footer { margin-top: 3rem; font-size: .85rem;
-           color: color-mix(in oklab, currentColor 55%, transparent); }
-</style>
-<h1>MeetingFocus</h1>
-<p class="sub">Runs your Shortcuts when a meeting starts and ends, on macOS.</p>
-<p>
-  It detects when you are actually in a meeting — not merely that Teams is open — and triggers the
-  automation you choose. Typically that means switching on a Focus so notifications stay quiet for
-  the call, which syncs to your iPhone too.
-</p>
-<a class="dl" href="https://github.com/Radiergummi/meeting-focus/releases/latest"><span>Download for macOS</span></a>
-<footer>Requires macOS 26 or later. <a href="https://github.com/Radiergummi/meeting-focus">Source on GitHub</a>.</footer>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>MeetingFocus</title>
+        <link
+            rel="icon"
+            type="image/png"
+            href="/favicon-96x96.png"
+            sizes="96x96"
+        />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
+        <meta name="apple-mobile-web-app-title" content="MeetingFocus" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <style>
+            :root {
+                color-scheme: light dark;
+            }
+            body {
+                font:
+                    16px/1.6 -apple-system,
+                    BlinkMacSystemFont,
+                    system-ui,
+                    sans-serif;
+                max-width: 34rem;
+                margin: 12vh auto;
+                padding: 0 1.5rem;
+            }
+            h1 {
+                font-size: 1.6rem;
+                margin-bottom: 0.25rem;
+            }
+            p.sub {
+                color: color-mix(in oklab, currentColor 60%, transparent);
+                margin-top: 0;
+            }
+            a.dl {
+                display: inline-block;
+                margin-top: 1.5rem;
+                padding: 0.6rem 1.1rem;
+                border-radius: 0.5rem;
+                background: currentColor;
+                text-decoration: none;
+            }
+            a.dl span {
+                color: Canvas;
+                font-weight: 600;
+            }
+            footer {
+                margin-top: 3rem;
+                font-size: 0.85rem;
+                color: color-mix(in oklab, currentColor 55%, transparent);
+            }
+        </style>
+    </head>
+    <body>
+        <h1>MeetingFocus</h1>
+        <p class="sub">
+            Runs your Shortcuts when a meeting starts and ends, on macOS.
+        </p>
+        <p>
+            It detects when you are actually in a meeting — not merely that
+            Teams is open — and triggers the automation you choose. Typically
+            that means switching on a Focus so notifications stay quiet for the
+            call, which syncs to your iPhone too.
+        </p>
+        <a
+            class="dl"
+            href="https://github.com/Radiergummi/meeting-focus/releases/latest"
+            ><span>Download for macOS</span></a
+        >
+        <footer>
+            Requires macOS 26 or later.
+            <a href="https://github.com/Radiergummi/meeting-focus"
+                >Source on GitHub</a
+            >.
+        </footer>
+    </body>
+</html>
