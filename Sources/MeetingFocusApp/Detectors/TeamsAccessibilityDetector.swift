@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import Foundation
 import MeetingFocusCore
 
@@ -22,6 +23,10 @@ actor TeamsAccessibilityDetector: MeetingDetector {
         var title: String?
         var startedAt: Date?
         var nodesVisited = 0
+        /// How many elements exposed an `AXDOMIdentifier` of any kind. Zero means the web tree is
+        /// not being published, which `pollOnce` treats very differently from a tree that is
+        /// published and contains no call.
+        var domIdentifiersSeen = 0
         var matchedMarkers: [String] = []
         /// True when a window looked like a meeting but produced no markers — the signature of
         /// Microsoft having renamed their element ids.
@@ -124,6 +129,10 @@ actor TeamsAccessibilityDetector: MeetingDetector {
 
         let scan = scanTree(pid: application.processIdentifier, now: now)
 
+        if scan.domIdentifiersSeen == 0 {
+            wakeAccessibilityTree(pid: application.processIdentifier)
+        }
+
         if scan.suspectedMarkerBreakage {
             Log.detector.warning(
                 "Teams window looks like a meeting but no markers matched — element ids may have changed"
@@ -134,7 +143,10 @@ actor TeamsAccessibilityDetector: MeetingDetector {
         let markerList = scan.matchedMarkers.joined(separator: ",")
         let verdictName = String(describing: scan.verdict)
         Log.detector.debug(
-            "verdict=\(verdictName, privacy: .public) nodes=\(scan.nodesVisited, privacy: .public) ids=[\(markerList, privacy: .public)]"
+            """
+            verdict=\(verdictName, privacy: .public) nodes=\(scan.nodesVisited, privacy: .public) \
+            dom=\(scan.domIdentifiersSeen, privacy: .public) ids=[\(markerList, privacy: .public)]
+            """
         )
         if scan.verdict != lastVerdict {
             let previousName = String(describing: lastVerdict)
@@ -146,6 +158,27 @@ actor TeamsAccessibilityDetector: MeetingDetector {
 
         emit(verdict: scan.verdict, title: scan.title, startedAt: scan.startedAt, at: now)
         return scan.verdict == .inMeeting ? pollIntervalActive : pollIntervalIdle
+    }
+
+    /// Persuades Chromium to publish Teams' web content to the accessibility API.
+    ///
+    /// Chromium keeps that tree switched off until it believes an assistive client needs it, and
+    /// *reading* does not convince it — the application's native chrome answers while everything
+    /// below stays empty, so the markers this detector matches on simply are not there. Writing to
+    /// the application element does convince it. Both attributes are refused (`-25205`
+    /// `attributeUnsupported` and `-25208` `illegalArgument`), which is not a failure to work
+    /// around: the attempt is the signal, and the refusal is what Chromium answers after acting on
+    /// it. Measured against Teams 26213.1006.5011.1671 during a live call — 42 nodes and 0
+    /// identifiers before, 193 and 32 within three seconds afterwards.
+    ///
+    /// Called from the poll rather than from `start()` because the tree goes dormant again whenever
+    /// Teams restarts, which the detector would otherwise never notice.
+    private func wakeAccessibilityTree(pid: pid_t) {
+        Log.accessibility.info("teams web tree is dormant, requesting accessibility")
+        let application = AXUIElementCreateApplication(pid)
+        for attribute in ["AXManualAccessibility", "AXEnhancedUserInterface"] {
+            _ = AXUIElementSetAttributeValue(application, attribute as CFString, kCFBooleanTrue)
+        }
     }
 
     private func emit(verdict: Verdict, title: String?, startedAt: Date?, at now: Date) {
@@ -179,6 +212,7 @@ actor TeamsAccessibilityDetector: MeetingDetector {
         let joiningMarkers = markers.joining.all
         var joiningSeen = false
         var nodes = 0
+        var identifiersSeen = 0
 
         for window in windows {
             var matchedInWindow: [String] = []
@@ -189,6 +223,7 @@ actor TeamsAccessibilityDetector: MeetingDetector {
                 nodes += 1
 
                 if let identifier = element.string("AXDOMIdentifier") {
+                    identifiersSeen += 1
                     if inMeetingMarkers.contains(identifier) {
                         matchedInWindow.append(identifier)
                     }
@@ -214,8 +249,17 @@ actor TeamsAccessibilityDetector: MeetingDetector {
         }
 
         scan.nodesVisited = nodes
+        scan.domIdentifiersSeen = identifiersSeen
         if scan.verdict != .inMeeting && joiningSeen {
             scan.verdict = .joining
+        }
+        // Not one identifier anywhere in the application means the web tree is dormant rather than
+        // empty — the native window chrome answers and everything below it is missing. Claiming
+        // absence from that is worse than saying nothing: this detector's evidence is definitive,
+        // so a blind `notInMeeting` outranks the microphone tier, which can still see the meeting
+        // perfectly well. `wakeAccessibilityTree` is what gets the tree back.
+        if scan.verdict == .notInMeeting && identifiersSeen == 0 {
+            scan.verdict = .indeterminate
         }
         return scan
     }

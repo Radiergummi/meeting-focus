@@ -153,6 +153,19 @@ final class MeetingStateMachineTests: XCTestCase {
         XCTAssertTrue(started.isEmpty)
     }
 
+    /// The counterpart to the test above, and the reason a blind detector must not claim absence.
+    /// Teams' accessibility tree can go dormant mid-call, at which point the Teams detector can
+    /// see nothing at all — while the microphone tier still can. Definitive evidence outranks
+    /// corroborating evidence only when it says something; `indeterminate` says nothing.
+    func testDefinitiveIndeterminateLeavesCorroboratingPresenceInCharge() {
+        machine.ingest(evidence(.inMeeting, detector: "audio", confidence: .corroborating, at: clock.now))
+        machine.ingest(evidence(.indeterminate, detector: "teams.ax", confidence: .definitive, at: clock.now))
+        clock.advance(10)
+        machine.tick()
+        XCTAssertTrue(machine.isInMeeting, "a detector that cannot see must not veto one that can")
+        XCTAssertEqual(started.count, 1)
+    }
+
     // 10 — audio alone can establish a meeting, but has to wait longer
     func testCorroboratingEvidenceAloneUsesLongerGrace() {
         machine.ingest(evidence(.inMeeting, subject: Subjects.zoom, detector: "audio",

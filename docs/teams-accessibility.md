@@ -180,9 +180,18 @@ Recording these so they are not re-attempted.
   would emit a false `meeting.ended`.
 - **Window-title matching.** Rejected: partly localized, and `Chat | Microsoft Teams` is
   structurally identical to a meeting title.
-- **`AXManualAccessibility` / `AXEnhancedUserInterface` to force the web tree.** Setting these
+- ~~**`AXManualAccessibility` / `AXEnhancedUserInterface` to force the web tree.** Setting these
   returned `-25205` (attribute unsupported) and `-25208` (illegal argument). Not needed — the web
-  tree was fully populated regardless.
+  tree was fully populated regardless.~~ **Wrong, corrected 2026-08-26.** The tree was populated
+  throughout that investigation because a probe had already woken it, so "not needed" described the
+  session rather than the mechanism. Chromium publishes web content only once it believes an
+  assistive client needs it, and reading the tree does not tell it that: on 2026-08-26, with a call
+  in progress, the whole application exposed **42 nodes and 0** `AXDOMIdentifier` elements, and the
+  AX window list was stale enough to name a window that had since been replaced. Attempting the two
+  writes above took it to **193 nodes and 32 identifiers within three seconds** — every marker
+  present, `call-duration-custom` reading `Verstrichene Zeit 14:29`. Both calls still return
+  `-25205` and `-25208`: the attempt is the signal, not the value. `TeamsAccessibilityDetector`
+  now performs it whenever a scan finds no identifiers at all.
 
 ## 8. Permissions
 

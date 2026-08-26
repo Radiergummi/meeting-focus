@@ -61,7 +61,17 @@ detection depends on Teams element ids that *will* be renamed. Anything that reg
 machine, a wiped keychain — re-opens this item.
 
 ### 4. Verify the app's in-meeting path end to end, at least once
-Never observed. The app has only ever reported `notInMeeting`. The marker logic is byte-identical
+Never observed. The app has only ever reported `notInMeeting` — and as of 2026-08-26 the reason
+is known, which is the substance of this item rather than a detail of it. Chromium publishes web
+content to the accessibility API only once it believes an assistive client needs it, and *reading*
+the tree does not convince it. Measured during a live call: the whole Teams application exposed 42
+nodes and **zero** `AXDOMIdentifier` elements. The app was not mismatching markers; it was blind,
+and reporting `notInMeeting` from that. `TeamsAccessibilityDetector.wakeAccessibilityTree` now
+performs the write that wakes it, and a scan that finds no identifiers at all reports
+`indeterminate` rather than absence, so a blind definitive detector can no longer outrank the
+microphone tier. See `teams-accessibility.md` §7.
+
+This makes the end-to-end run far more likely to succeed, and does not replace it. The marker logic is byte-identical
 to what ran correctly against three real meetings on 2026-08-25 and the state machine is
 unit-tested, but **detection → event → shortcut has not fired in the real app**. Watch it during
 one real call:
