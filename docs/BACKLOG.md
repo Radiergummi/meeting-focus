@@ -1,6 +1,7 @@
 # Backlog
 
 Everything known to be outstanding as of 2026-08-26, ordered by priority within each section.
+P0 now holds one open item — number 4.
 Items carry the reason they matter, because a task without its rationale gets done wrong or
 dropped for the wrong reason.
 
@@ -11,31 +12,30 @@ Related: [`constraints.md`](constraints.md) tracks platform limits and which are
 
 ## P0 — Correctness of claims already made
 
-### 1. Re-release through CI so the shipped build actually has provenance
-`v0.1.0` is published but was built **locally**, before the release workflow existed. Verified:
+### 1. Re-release through CI so the shipped build actually has provenance — done
+Released 2026-08-26 as **v0.1.2**, built by `.github/workflows/release.yml` on a GitHub-hosted
+runner, notarized, stapled and attested. The two commands this item quoted as failing for v0.1.0
+now pass, checked against the published artifact rather than against the workflow's own output:
 
 ```
-gh attestation verify MeetingFocus-0.1.0.dmg → HTTP 404 (no attestation)
-Info.plist :MFBuildCommit                    → does not exist
+gh attestation verify MeetingFocus-0.1.2.dmg   → exit 0, slsa.dev/provenance/v1
+                                                 commit ff5531d, release.yml@refs/tags/v0.1.2
+Info.plist :MFBuildCommit                      → ff5531dbed8e3ac352fb58646fa17192da02e095
+xcrun stapler validate                         → valid
+spctl -a -t install                            → accepted, source=Notarized Developer ID
 ```
 
-The README and release template now promise verifiable provenance, and the one shipped artifact
-has none — the claim is currently false for every existing download, and the appcast advertises
-that same unattested build. Fix by tagging a release through `.github/workflows/release.yml` and
-either replacing `v0.1.0` or superseding it with `v0.1.1`.
+The same commands against the v0.1.0 disk image still return `HTTP 404` and exit 1, which is what
+makes the pass meaningful rather than a check that quietly no-ops. The appcast advertises 0.1.2, so
+the README's provenance claim is now true for every download it points at.
 
-**No longer blocked**, and `v0.1.1` is ready: `project.yml` reads `0.1.1`, `CHANGELOG.md` has a
-`[0.1.1]` section — including the onboarding entry it was missing, which README documented and the
-changelog did not — and as of 2026-08-26 `Scripts/preflight.sh 0.1.1` passes **every** check. The
-last one to fall was the working tree, dirty with the automation-persistence work of items 23 and
-24; `git tag` tags HEAD, so that had to land first or it simply would not have shipped. (An earlier
-note here called that dirt the ⌥ diagnostics work — that was already committed as `f81a459`.)
+Two releases were cut getting here, and neither wasted: v0.1.1 exposed that the archive depended on
+a development certificate no runner has (fixed in `931adc1`), and v0.1.2 exposed the build-number
+collision recorded as item 25. **v0.1.1 remains published, superseded, and deliberately absent from
+the feed** — it was advertised to nobody, and re-cutting it would produce an artifact whose digest
+no longer matches the notes and attestation already published against it.
 
-What remains: push the 38 local commits, then `git tag v0.1.1 && git push origin v0.1.1`. The
-workflow opens a *draft* release, so publishing it and running `make publish` to sign the appcast
-are two further deliberate steps — nothing reaches a user until both are taken.
-
-### 2. Add the release secrets — done; the workflow itself is still unproven
+### 2. Add the release secrets — done, and the workflow is now proven
 Added 2026-08-26, split by what each thing actually is:
 
 | Name | Kind | Contents |
@@ -56,7 +56,10 @@ Note what this asks: the Developer ID key must exist on a runner, in an ephemera
 disposable VM. The alternative is every user trusting an unverifiable binary. It is a real trade
 and should be made knowingly, not by default.
 
-Whether the workflow *runs* is a separate claim, and still an untested one — that is item 1.
+The workflow has now run green twice end to end, so the five names above are confirmed correct as
+split — three `secrets.`, two `vars.` The `vars.` correction in `905035f` was load-bearing: with
+`secrets.NAME` for a variable expanding to the empty string, the first real run would have aborted
+in `signing.sh` before building anything.
 
 ### 3. Back up the Sparkle private signing key — done
 Backed up 2026-08-26, confirmed by the maintainer. Kept here rather than deleted because the reason
@@ -484,3 +487,32 @@ Related, and decided at the same time: `endCooldown` drops from 45 seconds to 20
 measured the back-to-back gap at 12 seconds, which is the only thing the wait is for; the remaining
 half-minute was silence after a call that was already over, and long enough that reaching for the
 Focus toggle yourself was the faster option. Existing installations keep whatever value they have.
+
+### 25. Two releases shared one build number — done
+Fixed 2026-08-26, and found the only way it could have been: by generating the feed and reading what
+came out. Sparkle compares `CFBundleVersion`, not the marketing version, so 0.1.1 — stamped `1`, as
+0.1.0 was — was not an update to an installed 0.1.0 at all. `generate_appcast` said as much:
+
+```
+Wrote 0 new updates, updated 1 existing update, and removed 0 old updates
+```
+
+It had rewritten 0.1.0's entry in place, producing a single item titled `0.1.0` that advertised the
+0.1.1 download, with the older release gone. Deployed, it would have offered nobody anything.
+
+**The intent was already in `release.yml`, and had never once worked.** `CURRENT_PROJECT_VERSION:
+${{ github.run_number }}` was set as a step *environment variable*, and xcodebuild takes build
+settings from its command line, not from the environment — so `project.yml`'s hardcoded `"1"` won
+every time. Run number 2 produced a bundle stamped `1`. A setting that looks wired up and silently
+does nothing is worse than one that is missing, because nothing ever asks after it.
+
+Two changes, and the second is the one that matters: `release.sh` now forwards the value into the
+archive as a build setting; and before notarizing, it compares the built bundle against the highest
+`sparkle:version` in the published feed and refuses to continue unless it is strictly newer. The
+failure was knowable from the bundle alone — no Apple round trip, no signature, no human noticing a
+number had not moved. CI's first run under the check printed `build 3 supersedes the published 1`.
+
+Worth keeping in view: this is the second bug in two releases whose shape was *a local build
+depending on something not present in the artifact or the repository* — the first being the
+development certificate of item 1. Both are the reason releases are built in public, and neither
+would have surfaced from the tests.
