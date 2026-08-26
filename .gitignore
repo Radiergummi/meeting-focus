@@ -15,3 +15,6 @@ node_modules/
 .make/
 # App Store Connect API key config, machine-local
 .authkey.mk
+
+# Worktrees created for isolated plan execution
+.claude/worktrees/
