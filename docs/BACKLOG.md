@@ -24,12 +24,16 @@ has none — the claim is currently false for every existing download, and the a
 that same unattested build. Fix by tagging a release through `.github/workflows/release.yml` and
 either replacing `v0.1.0` or superseding it with `v0.1.1`.
 
-**No longer blocked**, and `v0.1.1` is staged: `project.yml` reads `0.1.1`, `CHANGELOG.md` has a
+**No longer blocked**, and `v0.1.1` is ready: `project.yml` reads `0.1.1`, `CHANGELOG.md` has a
 `[0.1.1]` section — including the onboarding entry it was missing, which README documented and the
-changelog did not — and `Scripts/preflight.sh 0.1.1` passes every check but one. The exception is
-the working tree, dirty with the in-progress ⌥ diagnostics work; `git tag` tags HEAD, so that has to
-land first or it simply would not ship. What remains after it does: push the local commits, then
-`git tag v0.1.1 && git push origin v0.1.1`.
+changelog did not — and as of 2026-08-26 `Scripts/preflight.sh 0.1.1` passes **every** check. The
+last one to fall was the working tree, dirty with the automation-persistence work of items 23 and
+24; `git tag` tags HEAD, so that had to land first or it simply would not have shipped. (An earlier
+note here called that dirt the ⌥ diagnostics work — that was already committed as `f81a459`.)
+
+What remains: push the 38 local commits, then `git tag v0.1.1 && git push origin v0.1.1`. The
+workflow opens a *draft* release, so publishing it and running `make publish` to sign the appcast
+are two further deliberate steps — nothing reaches a user until both are taken.
 
 ### 2. Add the release secrets — done; the workflow itself is still unproven
 Added 2026-08-26, split by what each thing actually is:
@@ -338,13 +342,21 @@ run a user-named shortcut.
 
 ---
 
-## P5 — Surfaced while building onboarding, not fixed
+## P5 — Surfaced while building onboarding
 
 Onboarding (item 9) is what put working automation in front of a new user for the first time, and
 in doing so it surfaced gaps nothing had exercised before. None of these blocked shipping it; each
 needs its own reason recorded so it does not get done for the wrong one.
 
-### 17. `MeetingMonitor.restart()` is never called
+### 17. `MeetingMonitor.restart()` is never called — done
+Fixed 2026-08-26 in `1fe3005`, both halves. `MeetingMonitor` now observes the detector settings
+directly — rather than hooking `SettingsView.onChange`, so that onboarding growing the same switches
+cannot silently reintroduce this — and `MeetingStateMachine.retractEvidence(fromDetector:)` supplies
+the half without which calling `restart()` would have been a regression. The prerequisite this item
+named is therefore discharged: onboarding can have a detector step.
+
+Original reasoning, kept because it is what the fix had to satisfy:
+
 Toggling a detector in Settings does not take effect until the app relaunches — `restart()` exists
 but nothing calls it. Pre-existing, not introduced by onboarding, but it is why onboarding has no
 detector step: a toggle that silently does nothing until relaunch is worse than no toggle at all.
@@ -427,3 +439,48 @@ an Add they already gave once.
 Apple's own onboarding guidance names TipKit as the recommended alternative to a single onboarding
 flow, and a tip anchored to the actual menu bar icon is a more native answer to "where did the app
 go?" than a sentence in the final onboarding step.
+
+---
+
+## P6 — Surfaced while auditing what happens to a Focus mode already on
+
+Both were found by asking the one question detection never asks: not "is there a meeting?" but
+"having turned the user's Focus on, is there still anything in the system that could turn it back
+off?" Twice the answer was no. Fixed together on 2026-08-26; recorded because the reasons still
+govern anything that touches the end path.
+
+### 23. Automation state did not survive the process — done
+`AutomationCoordinator` held the running meeting in a field, so quitting, crashing, taking a Sparkle
+update or rebooting mid-call destroyed the only thing that could ever have run the end shortcut. The
+Focus mode stayed on until the user turned it off by hand. A relaunch landing during the same call
+was worse, and is the fingerprint the bug was recognised by: with nothing recorded, the coordinator
+started from idle and ran the *start* shortcut a second time over a Focus that was already on.
+
+**A Focus mode is a system-wide fact, so the belief that we turned one on is now persisted like
+one.** `AutomationStateStore` is written before each command is handed on — never beside it, so what
+is recorded and what was run cannot disagree — and adopted at construction. The protocol lives in
+`MeetingFocusCore` where the decision is testable; `AutomationStateDefaults` in the app target is the
+`UserDefaults` half, deliberately *not* part of `AppSettings`: nobody chose it and nothing in
+Settings shows it.
+
+Not covered, and worth knowing before this is assumed to be more than it is: the store records a
+meeting, not a shortcut run. An end shortcut that fails at launch fails exactly as it would at any
+other time, and the mapping from command to shortcut still lives in the app target, which has no
+test host — item 13's gap.
+
+### 24. A hold on unusable evidence had no bound — done
+`MeetingStateMachine` holds the previous state when evidence resolves to nothing, so that a
+transient loss of accessibility can never end a meeting. That rule is right and stays. What was
+missing is that **staleness is not the only way evidence becomes unusable**: `indeterminate` is
+discarded however fresh it is, so a detector that has gone blind while still reporting kept the hold
+alive forever. A dormant Teams accessibility tree during a muted call has exactly that shape, and
+the result was a meeting nothing in the system could end.
+
+The hold is now bounded by `Configuration.unresolvedHold` at ten minutes — long past any real
+hiccup, finite because "hold forever" means a Focus mode that never comes back off. Giving up is not
+going deaf: the subject starts the next meeting normally.
+
+Related, and decided at the same time: `endCooldown` drops from 45 seconds to 20. Constraint D3
+measured the back-to-back gap at 12 seconds, which is the only thing the wait is for; the remaining
+half-minute was silence after a call that was already over, and long enough that reaching for the
+Focus toggle yourself was the faster option. Existing installations keep whatever value they have.
