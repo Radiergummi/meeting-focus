@@ -39,6 +39,7 @@
                  description="What to call the meeting.">
         <cocoa key="meetingTitle"/>
       </parameter>
+      <result type="date" description="When the claim lapses."/>
     </command>
 
     <command name="clear meeting override" code="MFcsclro"

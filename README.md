@@ -105,7 +105,9 @@ from the outside rather than being driven by it:
 - **Set Meeting State** — tells MeetingFocus you are (or are not) in a meeting, for up to 8 hours.
   Overrules what the detectors see, exactly like the menu bar switch. Returns the expiry time.
 - **Clear Meeting Override** — withdraws a manual claim and lets MeetingFocus go back to detecting.
-  A detected meeting already in progress keeps running; this only retracts the manual claim.
+  A detected meeting already in progress keeps running; this only retracts the manual claim. It does
+  not undo a dismissal ("Not in a meeting") — that lifts only once the dismissed detector's own
+  evidence goes quiet.
 - **Get Meeting Status** — reports whether MeetingFocus believes you are in a meeting, as a `Bool`
   a Shortcuts `If` block can branch on directly.
 
@@ -133,6 +135,10 @@ the only form that can name a duration and a title together. The dictionary is v
 Editor's File → Open Dictionary…, and, like any Apple Events client, the first call raises an
 Automation permission prompt attributed to the calling app (Terminal, typically) — that is macOS's
 usual TCC gate, not a MeetingFocus permission.
+
+A read lags a write by about a second, on both surfaces: state is debounced and only re-evaluated
+on a 1-second tick, so `Get Meeting Status` or `get in meeting` checked immediately after a `Set
+Meeting State` call can still report the previous state.
 
 ## When detection breaks
 

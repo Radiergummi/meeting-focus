@@ -226,13 +226,15 @@ final class MeetingMonitor {
     ///   duration simply ran out. An instruction ends automation at once; a lapsing timer uses the
     ///   ordinary cooldown, because the likeliest expiry is a call that ran a little long and is
     ///   about to be re-declared.
-    func withdrawManualMeeting(isInstruction: Bool) {
+    /// - Parameter source: who asked, for the detection log. A lapsing timer has no source; it keeps
+    ///   the default.
+    func withdrawManualMeeting(isInstruction: Bool, source: String = "menu") {
         guard manualMeeting else { return }
         manualMeeting = false
         manualMeetingExpiresAt = nil
         manualMeetingTitle = nil
         machine.retractEvidence(fromDetector: Self.manualDetectorID)
-        note(isInstruction ? "Manual meeting withdrawn" : "Manual meeting expired")
+        note(isInstruction ? "Manual meeting withdrawn via \(source)" : "Manual meeting expired")
         refresh()
         if isInstruction, !machine.isInMeeting { coordinator.endImmediately() }
     }

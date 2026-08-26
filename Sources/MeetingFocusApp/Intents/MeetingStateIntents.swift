@@ -37,8 +37,15 @@ struct SetMeetingStateIntent: AppIntent {
     var meetingTitle: String?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Set meeting state to \(\.$state) for \(\.$minutes) minutes") {
-            \.$meetingTitle
+        Switch(\.$state) {
+            Case(.inMeeting) {
+                Summary("Set meeting state to \(\.$state) for \(\.$minutes) minutes") {
+                    \.$meetingTitle
+                }
+            }
+            DefaultCase {
+                Summary("Set meeting state to \(\.$state)")
+            }
         }
     }
 
@@ -68,13 +75,17 @@ struct SetMeetingStateIntent: AppIntent {
 struct ClearMeetingOverrideIntent: AppIntent {
     static var title: LocalizedStringResource { "Clear Meeting Override" }
     static var description: IntentDescription {
-        IntentDescription("Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running.")
+        IntentDescription("""
+            Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting \
+            running, and does not undo a dismissal — that lifts only once the dismissed detector's own \
+            evidence goes quiet.
+            """)
     }
 
     @MainActor
     func perform() async throws -> some IntentResult {
         guard let monitor = IntentBridge.monitor else { throw MeetingFocusIntentError.notReady }
-        monitor.withdrawManualMeeting(isInstruction: true)
+        monitor.withdrawManualMeeting(isInstruction: true, source: "shortcuts")
         return .result()
     }
 }

@@ -1325,6 +1325,40 @@
         }
       }
     },
+    "Set meeting state to ${state}" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Besprechungsstatus auf ${state} setzen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set meeting state to ${state}"
+          }
+        }
+      }
+    },
+    "Set meeting state to ${state} for ${minutes} minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Besprechungsstatus auf ${state} setzen, für ${minutes} Minuten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set meeting state to ${state} for ${minutes} minutes"
+          }
+        }
+      }
+    },
     "Settings…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1818,19 +1852,19 @@
         }
       }
     },
-    "Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running." : {
+    "Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running, and does not undo a dismissal — that lifts only once the dismissed detector's own evidence goes quiet." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Zieht eine manuelle Angabe zurück und lässt MeetingFocus wieder selbst erkennen. Eine erkannte Besprechung läuft dabei unverändert weiter."
+            "value" : "Zieht eine manuelle Angabe zurück und lässt MeetingFocus wieder selbst erkennen. Eine erkannte Besprechung läuft dabei unverändert weiter – eine Ablehnung wird dadurch nicht aufgehoben, die endet erst, wenn keine Anzeichen für die abgelehnte Erkennung mehr vorliegen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running."
+            "value" : "Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running, and does not undo a dismissal — that lifts only once the dismissed detector's own evidence goes quiet."
           }
         }
       }

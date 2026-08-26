@@ -54,8 +54,8 @@ final class SetMeetingStateCommand: NSScriptCommand {
         let minutes = (arguments["minutes"] as? NSNumber)?.doubleValue
         let title = arguments["meetingTitle"] as? String
 
-        MainActor.assumeIsolated {
-            guard let monitor = IntentBridge.monitor else { return }
+        let expiresAt: Date? = MainActor.assumeIsolated {
+            guard let monitor = IntentBridge.monitor else { return nil }
             if inMeeting {
                 monitor.setInMeeting(
                     true,
@@ -63,18 +63,20 @@ final class SetMeetingStateCommand: NSScriptCommand {
                     source: "applescript",
                     title: title
                 )
+                return monitor.manualMeetingExpiresAt
             } else {
                 monitor.setInMeeting(false, source: "applescript")
+                return nil
             }
         }
-        return nil
+        return expiresAt
     }
 }
 
 final class ClearMeetingOverrideCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         MainActor.assumeIsolated {
-            IntentBridge.monitor?.withdrawManualMeeting(isInstruction: true)
+            IntentBridge.monitor?.withdrawManualMeeting(isInstruction: true, source: "applescript")
         }
         return nil
     }
