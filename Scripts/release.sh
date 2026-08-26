@@ -47,6 +47,17 @@ fi
 # a local build honestly rather than claiming a provenance it does not have.
 BUILD_SETTINGS=(MF_BUILD_COMMIT="${MF_BUILD_COMMIT:-local}" MF_BUILD_RUN_URL="${MF_BUILD_RUN_URL:-}")
 
+# Sparkle decides what is newer by CFBundleVersion, not by the marketing version. Two releases
+# sharing a build number are therefore the *same* update to an installed copy: generate_appcast
+# rewrites the existing entry instead of adding one, and the older release disappears from the feed.
+# CI passes its run number, which is monotonic; a local build keeps whatever project.yml says.
+#
+# Passed as a build setting rather than exported, because xcodebuild takes settings from its command
+# line and not from the environment — an env var here looks like it works and silently does nothing.
+if [[ -n "${CURRENT_PROJECT_VERSION:-}" ]]; then
+    BUILD_SETTINGS+=(CURRENT_PROJECT_VERSION="$CURRENT_PROJECT_VERSION")
+fi
+
 BUILD_DIR="build"
 ARCHIVE="$BUILD_DIR/MeetingFocus.xcarchive"
 EXPORT_DIR="$BUILD_DIR/export"
@@ -87,6 +98,24 @@ VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/C
 DMG="$BUILD_DIR/MeetingFocus-$VERSION.dmg"
 # A writable intermediate, discarded once the compressed image is built. See below for why.
 RW_DMG="$BUILD_DIR/MeetingFocus-$VERSION-rw.dmg"
+
+# Checked before notarization rather than after: a round trip to Apple takes minutes, and this
+# failure is knowable the moment the bundle exists. A build number that is not newer than the one
+# already advertised cannot be offered as an update to anyone running the published version.
+step "Checking the build number is newer than the published one"
+BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")
+PUBLISHED_BUILD=$(curl -fsSL "$FEED_URL" 2>/dev/null \
+    | sed -n 's/.*<sparkle:version>\([0-9][0-9]*\)<.*/\1/p' | sort -n | tail -1)
+if [[ -z "$PUBLISHED_BUILD" ]]; then
+    echo "no published feed to compare against; build number is $BUILD_NUMBER"
+elif [[ "$BUILD_NUMBER" -le "$PUBLISHED_BUILD" ]]; then
+    echo "build number $BUILD_NUMBER is not newer than the published $PUBLISHED_BUILD." >&2
+    echo "Sparkle compares CFBundleVersion, so this build could not be offered as an update," >&2
+    echo "and generate_appcast would overwrite the existing entry rather than add one." >&2
+    exit 1
+else
+    echo "build $BUILD_NUMBER supersedes the published $PUBLISHED_BUILD"
+fi
 
 step "Verifying the signature"
 codesign --verify --deep --strict --verbose=2 "$APP"

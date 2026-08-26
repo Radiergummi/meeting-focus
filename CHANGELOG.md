@@ -13,6 +13,12 @@ documentation belong in the commit history, not here.
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-08-26
+
+### Fixed
+
+- **Automatic updates could not be offered at all.** Every build so far carried the same internal build number, and that number — not the version you see — is what Sparkle compares to decide whether an update is newer. 0.1.1 therefore looked identical to 0.1.0 to an installed copy, and generating the update feed overwrote the older release's entry instead of adding a new one. Builds now take a build number that increases with every release, and a release whose number is not newer than the published one is refused before it can be signed. If you are running 0.1.0, this is the release that reaches you, and it includes everything listed under 0.1.1 below — that release was published but never advertised to anyone.
+
 ## [0.1.1] — 2026-08-26
 
 ### Added
@@ -63,6 +69,7 @@ First release.
   and diagnostics.
 - Automatic updates via Sparkle, signed with a key held by the maintainer rather than by CI.
 
-[Unreleased]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Radiergummi/meeting-focus/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Radiergummi/meeting-focus/releases/tag/v0.1.0
