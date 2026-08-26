@@ -133,7 +133,13 @@ final class MeetingMonitor {
                 guard let self else { return }
                 // Kept fresh rather than asserted once: evidence has a TTL, and a claim that expires
                 // leaves the machine holding a state nothing is saying any more.
-                if self.manualMeeting { self.assertManualMeeting() }
+                if self.manualMeeting {
+                    if let expiry = self.manualMeetingExpiresAt, self.timeSource.now >= expiry {
+                        self.withdrawManualMeeting(isInstruction: false)
+                    } else {
+                        self.assertManualMeeting()
+                    }
+                }
                 self.machine.tick()
                 self.coordinator.tick()
                 self.refresh()
@@ -162,6 +168,8 @@ final class MeetingMonitor {
     /// Whether the user has declared a meeting by hand. Not persisted: a meeting someone switched on
     /// is over by the time the app is next launched.
     private(set) var manualMeeting = false
+    /// When the claim lapses, or nil for indefinite — which only the menu switch asks for.
+    private(set) var manualMeetingExpiresAt: Date?
 
     private static let manualDetectorID = "manual"
 
@@ -176,20 +184,60 @@ final class MeetingMonitor {
     /// mid-call has to do something even though no *manual* meeting exists to withdraw. "Not in a
     /// meeting" is a statement about the user, and it outranks every detector for exactly as long as
     /// the call it was said about — see `MeetingStateMachine.dismissActiveMeetings`.
-    func setInMeeting(_ inMeeting: Bool) {
+    ///
+    /// - Parameter duration: nil is indefinite, which only the menu switch may ask for; a person at
+    ///   the keyboard can flip the switch back, where an automation may never look again.
+    func setInMeeting(
+        _ inMeeting: Bool,
+        for duration: TimeInterval? = nil,
+        source: String = "menu",
+        title: String? = nil
+    ) {
         manualMeeting = inMeeting
         if inMeeting {
+            manualMeetingTitle = title
+            manualMeetingExpiresAt = duration.map {
+                timeSource.now.addingTimeInterval(ManualMeetingDuration.clamped($0))
+            }
             assertManualMeeting()
+            note("Manual meeting via \(source)")
         } else {
+            manualMeetingExpiresAt = nil
+            manualMeetingTitle = nil
             machine.retractEvidence(fromDetector: Self.manualDetectorID)
             machine.dismissActiveMeetings()
             // Dismissing ends the meeting, but automation would still hold that end for `endCooldown`
             // and leave the user's Focus mode on for another 45 seconds. The cooldown is there for the
             // gap between back-to-back meetings; it is not for someone saying they are done.
             coordinator.endImmediately()
+            note("Not in a meeting via \(source)")
         }
         refresh()
     }
+
+    /// Withdraws the manual claim, and says nothing at all about the detectors.
+    ///
+    /// The distinction this draws is the whole reason it exists. `setInMeeting(false)` is the
+    /// statement "I am not in a meeting", which dismisses a detected call too. Withdrawal is only
+    /// "stop claiming" — so a duration running out while Teams is mid-call leaves that call alone
+    /// instead of silently suppressing it for as long as it lasts.
+    ///
+    /// - Parameter isInstruction: true when a person or an automation asked for this, false when a
+    ///   duration simply ran out. An instruction ends automation at once; a lapsing timer uses the
+    ///   ordinary cooldown, because the likeliest expiry is a call that ran a little long and is
+    ///   about to be re-declared.
+    func withdrawManualMeeting(isInstruction: Bool) {
+        guard manualMeeting else { return }
+        manualMeeting = false
+        manualMeetingExpiresAt = nil
+        manualMeetingTitle = nil
+        machine.retractEvidence(fromDetector: Self.manualDetectorID)
+        note(isInstruction ? "Manual meeting withdrawn" : "Manual meeting expired")
+        refresh()
+        if isInstruction, !machine.isInMeeting { coordinator.endImmediately() }
+    }
+
+    private var manualMeetingTitle: String?
 
     private func assertManualMeeting() {
         machine.ingest(MeetingEvidence(
@@ -199,6 +247,7 @@ final class MeetingMonitor {
             confidence: .definitive,
             // Named, because this is what the menu and the detection log call it.
             applicationName: String(localized: "Manual meeting"),
+            title: manualMeetingTitle,
             observedAt: Date()
         ))
     }
