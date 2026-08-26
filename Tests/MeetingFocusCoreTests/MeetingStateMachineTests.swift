@@ -248,4 +248,84 @@ final class MeetingStateMachineTests: XCTestCase {
         XCTAssertFalse(machine.isInMeeting)
         XCTAssertTrue(events.isEmpty)
     }
+
+    // MARK: Dismissal
+
+    /// The user saying they are not in a meeting ends it at once — no end grace, as with a quit
+    /// application.
+    func testDismissalEndsTheMeetingImmediately() {
+        enterMeeting()
+        machine.dismissActiveMeetings()
+        XCTAssertFalse(machine.isInMeeting)
+        XCTAssertEqual(ended.count, 1)
+        XCTAssertNotNil(ended.first?.endedAt)
+    }
+
+    /// The point of the dismissal, and the reason it cannot simply end the meeting: the detector goes
+    /// on reporting the call the user just dismissed, and must not be allowed to restart it.
+    func testDismissedSubjectStaysIdleWhileItsEvidenceStillClaimsAMeeting() {
+        enterMeeting()
+        machine.dismissActiveMeetings()
+
+        for _ in 0..<5 {
+            machine.ingest(evidence(.inMeeting, at: clock.now))
+            clock.advance(2.0)
+            machine.tick()
+        }
+        XCTAssertFalse(machine.isInMeeting, "the detector must not undo the dismissal")
+        XCTAssertEqual(started.count, 1, "and must not report a second start")
+    }
+
+    /// And the reason it cannot last forever: once the call the user dismissed genuinely ends, the
+    /// next one has to register like any other.
+    func testTheNextRealMeetingStartsNormallyAfterADismissal() {
+        enterMeeting()
+        machine.dismissActiveMeetings()
+
+        // The real meeting ends, which is what releases the subject.
+        machine.ingest(evidence(.notInMeeting, at: clock.now))
+        clock.advance(6.0)
+        machine.tick()
+        XCTAssertFalse(machine.isInMeeting)
+
+        enterMeeting(title: "Retro")
+        XCTAssertTrue(machine.isInMeeting)
+        XCTAssertEqual(started.count, 2)
+        XCTAssertEqual(started.last?.title, "Retro")
+    }
+
+    /// Dismissing when there is nothing to dismiss is not an event, and must not leave a subject
+    /// deaf to the meeting that starts a moment later.
+    func testDismissingWhileIdleEmitsNothingAndBlocksNothing() {
+        machine.dismissActiveMeetings()
+        XCTAssertTrue(events.isEmpty)
+
+        enterMeeting()
+        XCTAssertTrue(machine.isInMeeting)
+        XCTAssertEqual(started.count, 1)
+    }
+
+    /// One dismissal covers everything in progress: "I am not in a meeting" is a statement about the
+    /// user, not about one application.
+    func testDismissalCoversEverySubjectAtOnce() {
+        enterMeeting(subject: Subjects.teams, title: "Standup")
+        enterMeeting(subject: Subjects.zoom, title: "Client call")
+        XCTAssertEqual(started.count, 2)
+
+        machine.dismissActiveMeetings()
+        XCTAssertFalse(machine.isInMeeting)
+        XCTAssertEqual(ended.count, 2)
+    }
+
+    /// A dismissal must not outlive the evidence it was about: switching the detector off settles the
+    /// subject, so a later meeting there starts normally.
+    func testRetractionReleasesADismissedSubject() {
+        enterMeeting()
+        machine.dismissActiveMeetings()
+        machine.retractEvidence(fromDetector: "teams.ax")
+
+        enterMeeting()
+        XCTAssertTrue(machine.isInMeeting)
+        XCTAssertEqual(started.count, 2)
+    }
 }

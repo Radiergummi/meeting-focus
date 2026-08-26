@@ -42,6 +42,9 @@ public final class MeetingStateMachine {
     private let timeSource: TimeSource
     private let onEvent: @MainActor (MeetingEvent) -> Void
     private var subjects: [String: Subject] = [:]
+    /// Subjects whose evidence is being ignored because the user said they are not in a meeting. See
+    /// `dismissActiveMeetings()`.
+    private var dismissed: Set<String> = []
 
     public init(
         configuration: Configuration = Configuration(),
@@ -65,6 +68,7 @@ public final class MeetingStateMachine {
     /// An application quitting is authoritative: no grace period applies, because there is no
     /// longer any process that could be hosting a meeting.
     public func applicationTerminated(subjectID: String) {
+        dismissed.remove(subjectID)
         guard var subject = subjects[subjectID] else { return }
         subject.evidenceByDetector.removeAll()
         subject.pendingState = nil
@@ -104,6 +108,7 @@ public final class MeetingStateMachine {
                 continue
             }
 
+            dismissed.remove(id)
             subject.pendingState = nil
             subject.pendingSince = nil
             let ending = subject.state == .inMeeting ? subject.meeting : nil
@@ -117,6 +122,37 @@ public final class MeetingStateMachine {
             }
         }
         evaluate()
+    }
+
+    /// Ends every meeting in progress because the user says there is none, and stops believing the
+    /// evidence behind them until that evidence agrees.
+    ///
+    /// The dismissal has to outlive the call, which is the whole difficulty: the detector that is
+    /// reporting the meeting will go on reporting it, and a plain end would be undone on the next
+    /// evaluation. It also must not last forever — pinning a subject shut would mean the next real
+    /// meeting in the same application never registered. So a dismissed subject is ignored only while
+    /// its own evidence still claims a meeting, and the moment that evidence resolves to anything else
+    /// the subject is released and behaves normally again. Saying "I am not in a meeting" therefore
+    /// lasts exactly as long as the meeting you said it about.
+    ///
+    /// Authoritative, like `applicationTerminated`: the user is a better witness than a detector, so
+    /// no end grace applies.
+    public func dismissActiveMeetings() {
+        for (id, original) in subjects where original.state != .idle {
+            var subject = original
+            subject.pendingState = nil
+            subject.pendingSince = nil
+            let ending = subject.state == .inMeeting ? subject.meeting : nil
+            subject.state = .idle
+            subject.meeting = nil
+            subjects[id] = subject
+            dismissed.insert(id)
+
+            if var meeting = ending {
+                meeting.endedAt = timeSource.now
+                onEvent(.ended(meeting))
+            }
+        }
     }
 
     /// Re-evaluates debounces. Call periodically; nothing here depends on being called on time.
@@ -147,53 +183,61 @@ public final class MeetingStateMachine {
         let now = timeSource.now
         for (id, original) in subjects {
             var subject = original
-            let resolved = EvidenceFusion.resolve(
-                evidence: Array(subject.evidenceByDetector.values),
-                now: now,
-                evidenceTTL: configuration.evidenceTTL
-            )
-
-            // No usable evidence: hold the previous state. This is the "temporary loss of
-            // accessibility information" case, and it must never end a meeting.
-            guard let resolved else {
-                subject.pendingState = nil
-                subject.pendingSince = nil
-                subjects[id] = subject
-                continue
-            }
-
-            let target: MeetingState = switch resolved.verdict {
-            case .inMeeting: .inMeeting
-            case .joining: .joining
-            case .notInMeeting, .indeterminate: .idle
-            }
-
-            if target == subject.state {
-                subject.pendingState = nil
-                subject.pendingSince = nil
-                subjects[id] = subject
-                continue
-            }
-
-            if subject.pendingState != target {
-                subject.pendingState = target
-                subject.pendingSince = now
-                subjects[id] = subject
-                continue
-            }
-
-            let grace = requiredGrace(from: subject.state, to: target, confidence: resolved.confidence)
-            guard let since = subject.pendingSince, now.timeIntervalSince(since) >= grace else {
-                subjects[id] = subject
-                continue
-            }
-
-            subject.pendingState = nil
-            subject.pendingSince = nil
-            let events = commit(subject: &subject, to: target, using: resolved, now: now)
+            let events = settle(subject: &subject, id: id, now: now)
             subjects[id] = subject
             for event in events { onEvent(event) }
         }
+    }
+
+    /// One subject's step: resolve what its detectors currently say, debounce the difference, and
+    /// commit once the difference has held for long enough.
+    private func settle(subject: inout Subject, id: String, now: Date) -> [MeetingEvent] {
+        let resolved = EvidenceFusion.resolve(
+            evidence: Array(subject.evidenceByDetector.values),
+            now: now,
+            evidenceTTL: configuration.evidenceTTL
+        )
+
+        // No usable evidence: hold the previous state. This is the "temporary loss of
+        // accessibility information" case, and it must never end a meeting.
+        guard let resolved else {
+            subject.pendingState = nil
+            subject.pendingSince = nil
+            return []
+        }
+
+        let target: MeetingState = switch resolved.verdict {
+        case .inMeeting: .inMeeting
+        case .joining: .joining
+        case .notInMeeting, .indeterminate: .idle
+        }
+
+        // A dismissed subject is released the moment its own evidence stops claiming a meeting, and
+        // ignored until then. Reading `target` rather than the raw verdict keeps the release rule in
+        // one place — whatever counts as "no meeting" below counts as one here.
+        if dismissed.contains(id) {
+            guard target == .idle else { return [] }
+            dismissed.remove(id)
+        }
+
+        if target == subject.state {
+            subject.pendingState = nil
+            subject.pendingSince = nil
+            return []
+        }
+
+        if subject.pendingState != target {
+            subject.pendingState = target
+            subject.pendingSince = now
+            return []
+        }
+
+        let grace = requiredGrace(from: subject.state, to: target, confidence: resolved.confidence)
+        guard let since = subject.pendingSince, now.timeIntervalSince(since) >= grace else { return [] }
+
+        subject.pendingState = nil
+        subject.pendingSince = nil
+        return commit(subject: &subject, to: target, using: resolved, now: now)
     }
 
     private func requiredGrace(

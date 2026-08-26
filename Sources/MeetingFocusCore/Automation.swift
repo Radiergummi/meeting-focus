@@ -74,6 +74,19 @@ public final class AutomationCoordinator {
         onCommand(.meetingEnded(pending.meeting))
     }
 
+    /// Ends automation now, bypassing `endCooldown`.
+    ///
+    /// The cooldown exists to absorb the gap between back-to-back meetings, which is a detector
+    /// artefact. An explicit instruction from the user is not that artefact, and a Focus mode that
+    /// stays on for three quarters of a minute after the switch is flipped reads as broken.
+    /// Authoritative in the same way `MeetingStateMachine.applicationTerminated` is.
+    public func endImmediately() {
+        pendingEnd = nil
+        guard state == .active, let meeting = lastMeeting else { return }
+        state = .idle
+        onCommand(.meetingEnded(meeting))
+    }
+
     public var isAutomationActive: Bool { state == .active }
     public var hasPendingEnd: Bool { pendingEnd != nil }
 }

@@ -131,6 +131,9 @@ final class MeetingMonitor {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self else { return }
+                // Kept fresh rather than asserted once: evidence has a TTL, and a claim that expires
+                // leaves the machine holding a state nothing is saying any more.
+                if self.manualMeeting { self.assertManualMeeting() }
                 self.machine.tick()
                 self.coordinator.tick()
                 self.refresh()
@@ -152,6 +155,52 @@ final class MeetingMonitor {
                 self.refresh()
             }
         })
+    }
+
+    // MARK: The switch
+
+    /// Whether the user has declared a meeting by hand. Not persisted: a meeting someone switched on
+    /// is over by the time the app is next launched.
+    private(set) var manualMeeting = false
+
+    private static let manualDetectorID = "manual"
+
+    /// Says whether the user is in a meeting, in the user's own voice.
+    ///
+    /// On is evidence rather than a second opinion: a definitive claim goes into the same machine the
+    /// detectors feed, so automation, the status row and the detection log treat it exactly as they
+    /// treat a detected call, and `aggregateState` stays the one answer to the question.
+    ///
+    /// Off both withdraws that claim and dismisses whatever the detectors are still asserting, which
+    /// is why this is a method rather than a settable flag: turning the switch off while Teams is
+    /// mid-call has to do something even though no *manual* meeting exists to withdraw. "Not in a
+    /// meeting" is a statement about the user, and it outranks every detector for exactly as long as
+    /// the call it was said about — see `MeetingStateMachine.dismissActiveMeetings`.
+    func setInMeeting(_ inMeeting: Bool) {
+        manualMeeting = inMeeting
+        if inMeeting {
+            assertManualMeeting()
+        } else {
+            machine.retractEvidence(fromDetector: Self.manualDetectorID)
+            machine.dismissActiveMeetings()
+            // Dismissing ends the meeting, but automation would still hold that end for `endCooldown`
+            // and leave the user's Focus mode on for another 45 seconds. The cooldown is there for the
+            // gap between back-to-back meetings; it is not for someone saying they are done.
+            coordinator.endImmediately()
+        }
+        refresh()
+    }
+
+    private func assertManualMeeting() {
+        machine.ingest(MeetingEvidence(
+            detectorID: Self.manualDetectorID,
+            subjectID: Self.manualDetectorID,
+            verdict: .inMeeting,
+            confidence: .definitive,
+            // Named, because this is what the menu and the detection log call it.
+            applicationName: String(localized: "Manual meeting"),
+            observedAt: Date()
+        ))
     }
 
     // MARK: State

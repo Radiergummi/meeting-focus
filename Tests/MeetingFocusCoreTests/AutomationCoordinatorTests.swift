@@ -98,4 +98,38 @@ final class AutomationCoordinatorTests: XCTestCase {
         for _ in 0..<10 { coordinator.tick() }
         XCTAssertEqual(endedTitles.count, 1)
     }
+
+    /// The user saying "I am not in a meeting" is not the back-to-back-meeting artefact the cooldown
+    /// exists to absorb, so it must not be held for one.
+    func testEndImmediatelySkipsTheCooldown() {
+        let call = meeting("Standup")
+        coordinator.update(isInMeeting: true, activeMeeting: call)
+
+        coordinator.endImmediately()
+
+        XCTAssertEqual(endedTitles, ["Standup"])
+        XCTAssertFalse(coordinator.isAutomationActive)
+    }
+
+    /// An end already waiting out the cooldown is replaced by the immediate one, not delivered twice.
+    func testEndImmediatelyCancelsAPendingEnd() {
+        let call = meeting("Standup")
+        coordinator.update(isInMeeting: true, activeMeeting: call)
+        coordinator.update(isInMeeting: false, activeMeeting: nil)
+        XCTAssertTrue(coordinator.hasPendingEnd)
+
+        coordinator.endImmediately()
+        clock.advance(600)
+        coordinator.tick()
+
+        XCTAssertEqual(endedTitles.count, 1)
+        XCTAssertFalse(coordinator.hasPendingEnd)
+    }
+
+    /// Flipping the switch off when nothing was running must not invent an end for a meeting that
+    /// automation never started.
+    func testEndImmediatelyDoesNothingWhenIdle() {
+        coordinator.endImmediately()
+        XCTAssertTrue(commands.isEmpty)
+    }
 }

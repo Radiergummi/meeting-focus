@@ -1,23 +1,6 @@
 import AppKit
 import MeetingFocusCore
 
-/// An item that runs a closure. AppKit's target–action wants a selector on some object, and every row
-/// below would otherwise need a method of its own on the controller.
-private final class ClosureMenuItem: NSMenuItem {
-    private let handler: () -> Void
-
-    init(title: String, keyEquivalent: String = "", handler: @escaping () -> Void) {
-        self.handler = handler
-        super.init(title: title, action: #selector(run), keyEquivalent: keyEquivalent)
-        target = self
-    }
-
-    @available(*, unavailable)
-    required init(coder: NSCoder) { fatalError("MenuBarController builds its items in code") }
-
-    @objc private func run() { handler() }
-}
-
 /// The menu bar item and the menu that drops out of it.
 ///
 /// AppKit, where `MenuBarExtra` built this until the ⌥ read-out needed the styling macOS gives a
@@ -121,17 +104,30 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     // MARK: - Building the menu
 
     private func rebuild() {
-        var items = statusRows() + [.separator()] + stateRows()
+        var items = statusRows()
+        items += separated(stateRows())
         if optionHeld { items += diagnosticsRows() }
-        items += [.separator()] + actionRows()
+        items += separated(actionRows())
+
+        // Whatever AppKit will indent its own titles by, these rows use too. Asking the finished list
+        // rather than restating the condition means a row that grows an image later cannot silently
+        // knock the hand-drawn ones out of line.
+        let inset = items.contains { $0.image != nil || $0.state != .off } ? MenuColumn.textBesideState : MenuColumn.text
+        for case let view as MenuRowView in items.compactMap(\.view) { view.textInset = inset }
 
         menu.removeAllItems()
         items.forEach { menu.addItem($0) }
     }
 
+    /// A separator ahead of a group, unless the group is empty — two rules in the same place, because
+    /// the rows below the state group are all conditional and a lone separator is a visible seam.
+    private func separated(_ rows: [NSMenuItem]) -> [NSMenuItem] {
+        rows.isEmpty ? [] : [.separator()] + rows
+    }
+
     private func statusRows() -> [NSMenuItem] {
         let status = status(for: monitor.aggregateState)
-        var rows = [headline(status.text, symbol: status.symbol)]
+        var rows = [switchRow(status.text, isOn: monitor.aggregateState == .inMeeting)]
         guard let meeting = monitor.activeMeetings.first else { return rows }
 
         rows.append(.separator())
@@ -144,17 +140,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return rows
     }
 
-    /// Switches rather than read-outs. A row carrying a tick nobody can click reads as a broken
-    /// checkbox, and both of these states have something behind them the user is allowed to change.
+    /// What is wrong and what to do about it — nothing here is a setting. Monitoring has no row
+    /// because there is no reason to run the app with detection switched off; quitting is that
+    /// gesture, and it is one the menu already offers. Automation keeps its switch in Settings, where
+    /// a preference belongs.
     private func stateRows() -> [NSMenuItem] {
-        var rows = [
-            toggle(String(localized: "Monitoring"), isOn: monitor.isMonitoring) { [monitor] in
-                Task { monitor.isMonitoring ? await monitor.stop() : await monitor.start() }
-            },
-            toggle(String(localized: "Automation"), isOn: settings.automationEnabled) { [settings] in
-                settings.automationEnabled.toggle()
-            },
-        ]
+        var rows: [NSMenuItem] = []
         // Automation can be on and still do nothing, which the old tick reported as a cross and left
         // the user to work out. Naming the missing piece is more use than reporting it.
         if settings.automationEnabled, !settings.isAutomationConfigured {
@@ -169,7 +160,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             let item = ClosureMenuItem(title: String(localized: "Grant Accessibility permission…")) {
                 AccessibilityAuthorization.openSystemSettings()
             }
-            item.image = symbol("exclamationmark.triangle")
+            item.image = warningSymbol()
             rows.append(item)
         }
         return rows
@@ -239,9 +230,31 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Rows
 
+    /// The status row: what the app believes, and the switch that overrules it — the shape the
+    /// Bluetooth menu gives its header, minus the leading symbol, because the switch is the state
+    /// indicator now.
+    ///
+    /// A view of its own, for the reason `row(_:font:color:image:)` explains, plus one more: an
+    /// `NSSwitch` is a control and a menu item's `state` tick is not. AppKit resizes an item's view to
+    /// the width of the menu — verified by building this at 120pt and measuring it back at 223 — so
+    /// the switch is pinned to the trailing edge by autoresizing rather than by the width guessed
+    /// here, and it moves when a longer row widens the menu.
+    private func switchRow(_ text: String, isOn: Bool) -> NSMenuItem {
+        let toggle = NSSwitch()
+        toggle.state = isOn ? .on : .off
+        toggle.target = self
+        toggle.action = #selector(meetingSwitched(_:))
+        toggle.sizeToFit()
+        return row(text, font: .menuFont(ofSize: 0), color: .labelColor, trailing: toggle)
+    }
+
+    @objc private func meetingSwitched(_ sender: NSSwitch) {
+        monitor.setInMeeting(sender.state == .on)
+    }
+
     /// A line at the menu's own size and colour, for the status and the meeting it is about.
-    private func headline(_ text: String, symbol name: String? = nil) -> NSMenuItem {
-        row(text, font: .menuFont(ofSize: 0), color: .labelColor, image: name.flatMap { symbol($0) })
+    private func headline(_ text: String) -> NSMenuItem {
+        row(text, font: .menuFont(ofSize: 0), color: .labelColor)
     }
 
     /// A detail line, the way macOS sets one: the small system size in the *secondary* label colour,
@@ -252,7 +265,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     ///
     /// No image: these rows say their state in words, which leaves nothing for a symbol to add.
     private func detail(_ text: String) -> NSMenuItem {
-        row(text, font: .menuFont(ofSize: NSFont.smallSystemFontSize), color: .secondaryLabelColor, image: nil)
+        row(text, font: .menuFont(ofSize: NSFont.smallSystemFontSize), color: .secondaryLabelColor)
     }
 
     /// A row that is text rather than a control, drawn by a view of its own.
@@ -265,54 +278,28 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     /// The cost is `Column`, whose numbers AppKit publishes no metric for and which were measured
     /// against a native row — so they can drift if Apple changes the metrics, and a row landing a few
     /// points out of line with the items above it is the whole risk.
-    private func row(_ text: String, font: NSFont, color: NSColor, image: NSImage?) -> NSMenuItem {
+    private func row(_ text: String, font: NSFont, color: NSColor, trailing: NSView? = nil) -> NSMenuItem {
         let label = NSTextField(labelWithString: text)
         label.font = font
         label.textColor = color
         label.sizeToFit()
 
-        let height = max(label.frame.height + Column.padding * 2, Column.minimumHeight)
-        label.setFrameOrigin(NSPoint(x: Column.text, y: (height - label.frame.height) / 2))
-        let width = Column.text + label.frame.width + Column.trailing
-        let view = NSView(frame: NSRect(x: 0, y: 0, width: width, height: height))
-        if let image {
-            let side = Column.imageSide
-            let well = NSImageView(frame: NSRect(x: Column.image, y: (height - side) / 2, width: side, height: side))
-            well.image = image
-            well.contentTintColor = color
-            view.addSubview(well)
-        }
-        view.addSubview(label)
-
         let item = NSMenuItem()
-        // The view draws the row; this is what VoiceOver reads back.
+        // The view draws the row; this is what VoiceOver reads for it. A control inside carries its
+        // own accessibility and reaches the tree in its own right.
         item.title = text
-        item.view = view
+        item.view = MenuRowView(label: label, trailing: trailing)
         return item
     }
 
     /// Where a menu item draws its parts, measured against a native row rather than read from an API,
     /// because AppKit exposes none. Named so that a re-measure on a future macOS is one edit each.
-    private enum Column {
-        /// Where an item's title starts, and where the image column before it sits.
-        static let text: CGFloat = 41
-        static let image: CGFloat = 24
-        static let imageSide: CGFloat = 14
-        static let padding: CGFloat = 3
-        static let trailing: CGFloat = 12
-        static let minimumHeight: CGFloat = 20
-    }
-
-    private func toggle(_ title: String, isOn: Bool, handler: @escaping () -> Void) -> NSMenuItem {
-        let item = ClosureMenuItem(title: title, handler: handler)
-        item.state = isOn ? .on : .off
-        return item
-    }
-
-    private func symbol(_ name: String, small: Bool = false) -> NSImage? {
-        let size = small ? NSFont.smallSystemFontSize : NSFont.systemFontSize
-        return NSImage(systemSymbolName: name, accessibilityDescription: nil)?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: size, weight: .regular))
+    /// The one item image left in the menu, and the reason `rebuild()` still has to ask whether a
+    /// state column exists: this row appears only when the permission is missing, and its presence
+    /// moves every title in the menu.
+    private func warningSymbol() -> NSImage? {
+        NSImage(systemSymbolName: "exclamationmark.triangle", accessibilityDescription: nil)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: NSFont.systemFontSize, weight: .regular))
     }
 
     // MARK: - Actions and state

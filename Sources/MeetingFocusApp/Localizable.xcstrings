@@ -704,6 +704,24 @@
         }
       }
     },
+    "Manual meeting" : {
+      "comment" : "Names the meeting the user switched on by hand, in the menu and the detection log.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manuelle Besprechung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual meeting"
+          }
+        }
+      }
+    },
     "MeetingFocus lives in your menu bar and starts working straight away." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -804,23 +822,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Microsoft Teams (Accessibility)"
-          }
-        }
-      }
-    },
-    "Monitoring" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Überwachung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monitoring"
           }
         }
       }

@@ -1,0 +1,90 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "extended-gray:1.00000,1.00000",
+      "display-p3:0.96729,0.95166,0.99609,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "blur-material" : 0.5,
+      "layers" : [
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.24442,0.56870,1.05747,0.00000",
+              "display-p3:0.96729,0.95166,0.99609,1.00000"
+            ],
+            "orientation" : {
+              "start" : {
+                "x" : 0.5000000000000001,
+                "y" : 0.6374706046279293
+              },
+              "stop" : {
+                "x" : 0.5,
+                "y" : 1
+              }
+            }
+          },
+          "glass" : false,
+          "image-name" : "MeetingFocus 2.png",
+          "name" : "MeetingFocus 2"
+        },
+        {
+          "blend-mode" : "multiply",
+          "fill" : "none",
+          "glass" : false,
+          "image-name" : "MeetingFocus.png",
+          "name" : "MeetingFocus",
+          "position" : {
+            "scale" : 0.82,
+            "translation-in-points" : [
+              -1,
+              -42
+            ]
+          }
+        }
+      ],
+      "lighting" : "combined",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.6
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    },
+    {
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            }
+          ],
+          "image-name" : "MeetingFocus 3.png",
+          "name" : "MeetingFocus 3"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.6
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

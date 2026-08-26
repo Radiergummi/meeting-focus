@@ -37,6 +37,13 @@ documentation belong in the commit history, not here.
 
 ### Changed
 
+- The menu's two checkmarks are gone, replaced by a single switch on the status row that both reports
+  whether you are in a meeting and lets you say so yourself. Switching it on declares a meeting when
+  nothing detected one; switching it off ends the meeting in progress and stops believing the detector
+  that reported it, until that detector agrees the call is over — so the next real meeting registers
+  normally. Switching it off also releases your Focus mode at once rather than 45 seconds later: the
+  cooldown that absorbs the gap between back-to-back meetings is not for someone saying they are done. Monitoring can no longer be switched off from the menu, because quitting is that gesture;
+  automation keeps its switch in Settings.
 - "Set Up MeetingFocus…" is now the ⌥ alternate of "Settings…" rather than a row of its own, with
   ⌘⌥, as its shortcut. Onboarding presents itself on a fresh install and reaching it again is a
   once-in-a-while repair, so it no longer takes a line in the everyday menu.
