@@ -282,3 +282,24 @@ framework into it to satisfy a scanner inverts that.
 So Sparkle's version is bumped by hand. It is pinned by the committed `Package.resolved`, and the
 release workflow would fail loudly on an incompatible bump, so the exposure is a missed update
 rather than a silent one. Worth checking its releases when touching the updater.
+
+### C8. The AppleScript dictionary ships English-only
+
+`Resources/MeetingFocus.sdef` describes MeetingFocus's Cocoa Scripting terminology — the same
+surface `osascript` and `tell application` use, and Script Editor's Open Dictionary reads. sdef
+text is plain XML with no relationship to the String Catalogue: localizing it means a `.strings`
+file per `.lproj`, a mechanism the xcstrings tooling in this project (`Tools/xcstrings`,
+`Tests/LocalizationTests`) knows nothing about and cannot audit or enforce. Every other
+user-visible string in the app goes through that catalogue; the sdef deliberately does not, rather
+than half-adopting a second, unenforced localization mechanism for one file.
+
+**Corners us?** No. AppleScript's own audience skews technical and English is the least surprising
+default for scripting terminology generally. Revisit only if a `.lproj`-per-locale `.strings` file
+is worth the maintenance for this one surface.
+
+A URL scheme (`meetingfocus://…`) was considered and rejected for the same job, in both
+directions: reading state has no return channel — a URL scheme can be *opened*, but has no way to
+hand a result back to the opener — and a *write* scheme would be triggerable by any web page the
+user visits, with no permission prompt standing between a page and MeetingFocus believing you are
+in a meeting. Cocoa Scripting requires a caller to go through Apple Events, which macOS gates
+behind the Automation TCC prompt (see C5) and which no web page can reach.

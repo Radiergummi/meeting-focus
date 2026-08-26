@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="MeetingFocus Terminology">
+  <suite name="MeetingFocus Suite" code="MFcs" description="Reading and setting meeting state.">
+
+    <class name="application" code="capp" description="The MeetingFocus application.">
+      <cocoa class="NSApplication"/>
+      <property name="in meeting" code="MFim" type="boolean"
+                description="Whether MeetingFocus believes you are in a meeting.">
+        <cocoa key="scriptingInMeeting"/>
+      </property>
+      <property name="meeting state" code="MFms" type="text" access="r"
+                description="idle, joining or inMeeting.">
+        <cocoa key="scriptingMeetingState"/>
+      </property>
+      <property name="meeting title" code="MFmt" type="text" access="r"
+                description="What the meeting in progress is called, if anything.">
+        <cocoa key="scriptingMeetingTitle"/>
+      </property>
+      <property name="manual" code="MFmn" type="boolean" access="r"
+                description="Whether the current state was declared by hand rather than detected.">
+        <cocoa key="scriptingManual"/>
+      </property>
+      <property name="override expires" code="MFoe" type="date" access="r"
+                description="When a manual claim lapses, if it has a duration.">
+        <cocoa key="scriptingOverrideExpires"/>
+      </property>
+    </class>
+
+    <command name="set meeting state" code="MFcssmst"
+             description="Declare whether you are in a meeting, for a given number of minutes.">
+      <cocoa class="SetMeetingStateCommand"/>
+      <direct-parameter type="boolean" description="Whether you are in a meeting."/>
+      <parameter name="for" code="MFfr" type="integer" optional="yes"
+                 description="Minutes the claim stands. Defaults to 60, capped at 480.">
+        <cocoa key="minutes"/>
+      </parameter>
+      <parameter name="titled" code="MFtt" type="text" optional="yes"
+                 description="What to call the meeting.">
+        <cocoa key="meetingTitle"/>
+      </parameter>
+      <result type="date" description="When the claim lapses."/>
+    </command>
+
+    <command name="clear meeting override" code="MFcsclro"
+             description="Withdraw a manual claim and go back to detecting.">
+      <cocoa class="ClearMeetingOverrideCommand"/>
+    </command>
+
+  </suite>
+</dictionary>

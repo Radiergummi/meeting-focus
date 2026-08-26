@@ -18,6 +18,7 @@ final class MeetingMonitor {
     private let timeSource: TimeSource = SystemTimeSource()
     private var machine: MeetingStateMachine!
     private var coordinator: AutomationCoordinator!
+    private var claim: ManualClaim!
     private var teamsDetector: TeamsAccessibilityDetector?
     private var audioDetector: AudioProcessDetector?
     private var tasks: [Task<Void, Never>] = []
@@ -33,6 +34,9 @@ final class MeetingMonitor {
             timeSource: timeSource
         ) { [weak self] command in
             self?.perform(command)
+        }
+        claim = ManualClaim(timeSource: timeSource) { [weak self] command in
+            self?.apply(command)
         }
         observeDetectorSettings()
     }
@@ -131,9 +135,9 @@ final class MeetingMonitor {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 guard let self else { return }
-                // Kept fresh rather than asserted once: evidence has a TTL, and a claim that expires
-                // leaves the machine holding a state nothing is saying any more.
-                if self.manualMeeting { self.assertManualMeeting() }
+                // Re-asserts a standing claim and withdraws a lapsed one. Both decisions live in
+                // `ManualClaim`, which is where they are tested.
+                self.claim.tick()
                 self.machine.tick()
                 self.coordinator.tick()
                 self.refresh()
@@ -161,7 +165,9 @@ final class MeetingMonitor {
 
     /// Whether the user has declared a meeting by hand. Not persisted: a meeting someone switched on
     /// is over by the time the app is next launched.
-    private(set) var manualMeeting = false
+    var manualMeeting: Bool { claim.isClaimed }
+    /// When the claim lapses, or nil for indefinite — which only the menu switch asks for.
+    var manualMeetingExpiresAt: Date? { claim.expiresAt }
 
     private static let manualDetectorID = "manual"
 
@@ -176,22 +182,61 @@ final class MeetingMonitor {
     /// mid-call has to do something even though no *manual* meeting exists to withdraw. "Not in a
     /// meeting" is a statement about the user, and it outranks every detector for exactly as long as
     /// the call it was said about — see `MeetingStateMachine.dismissActiveMeetings`.
-    func setInMeeting(_ inMeeting: Bool) {
-        manualMeeting = inMeeting
-        if inMeeting {
-            assertManualMeeting()
-        } else {
+    ///
+    /// - Parameter duration: nil is indefinite, which only the menu switch may ask for; a person at
+    ///   the keyboard can flip the switch back, where an automation may never look again.
+    func setInMeeting(
+        _ inMeeting: Bool,
+        for duration: TimeInterval? = nil,
+        source: String = "menu",
+        title: String? = nil
+    ) {
+        claim.declare(inMeeting: inMeeting, for: duration, source: source, title: title)
+        refresh()
+    }
+
+    /// Withdraws the manual claim, and says nothing at all about the detectors.
+    ///
+    /// The distinction this draws is the whole reason it exists. `setInMeeting(false)` is the
+    /// statement "I am not in a meeting", which dismisses a detected call too. Withdrawal is only
+    /// "stop claiming" — so a duration running out while Teams is mid-call leaves that call alone
+    /// instead of silently suppressing it for as long as it lasts.
+    ///
+    /// - Parameter source: who asked, for the detection log.
+    func withdrawManualMeeting(source: String = "menu") {
+        claim.withdraw(source: source)
+        refresh()
+    }
+
+    /// Carries out what `ManualClaim` decided. Deliberately flat: every branch is a few lines, so
+    /// which machine call each command maps to can be read off at a glance. The decision that used
+    /// to live here — assert, withdraw or dismiss — is in `ManualClaim`, where it is tested.
+    private func apply(_ command: ManualClaimCommand) {
+        switch command {
+        case .assert(let title, let source):
+            assertManualMeeting(title: title)
+            // Only a fresh declaration carries a source, so a renewed claim does not re-log.
+            if let source { note("Manual meeting via \(source)") }
+
+        case .withdraw(let isInstruction, let source):
+            machine.retractEvidence(fromDetector: Self.manualDetectorID)
+            // A timer lapsing is not an instruction, so it uses the ordinary cooldown: the likeliest
+            // expiry is a call that ran a little long and is about to be re-declared.
+            if isInstruction, !machine.isInMeeting { coordinator.endImmediately() }
+            note(source.map { "Manual meeting withdrawn via \($0)" } ?? "Manual meeting expired")
+
+        case .dismiss(let source):
             machine.retractEvidence(fromDetector: Self.manualDetectorID)
             machine.dismissActiveMeetings()
             // Dismissing ends the meeting, but automation would still hold that end for `endCooldown`
             // and leave the user's Focus mode on for another 45 seconds. The cooldown is there for the
             // gap between back-to-back meetings; it is not for someone saying they are done.
             coordinator.endImmediately()
+            note("Not in a meeting via \(source)")
         }
-        refresh()
     }
 
-    private func assertManualMeeting() {
+    private func assertManualMeeting(title: String?) {
         machine.ingest(MeetingEvidence(
             detectorID: Self.manualDetectorID,
             subjectID: Self.manualDetectorID,
@@ -199,6 +244,7 @@ final class MeetingMonitor {
             confidence: .definitive,
             // Named, because this is what the menu and the detection log call it.
             applicationName: String(localized: "Manual meeting"),
+            title: title,
             observedAt: Date()
         ))
     }

@@ -1,10 +1,10 @@
 # Architecture
 
 ```
-Meeting application
-      │
-      ▼
-MeetingDetector  ──emits──▶  MeetingEvidence  (verdict + confidence)
+Meeting application          App Intents (Shortcuts) · AppleScript (osascript, `tell application`)
+      │                                        │
+      ▼                                        ▼
+MeetingDetector  ──emits──▶  MeetingEvidence  ◀──asserts──  MeetingMonitor (manual claim)
       │
       ▼
 EvidenceFusion   ──resolves per subject──▶  one verdict
@@ -40,6 +40,12 @@ Automation must not, because back-to-back meetings are normal and flapping a Foc
 two calls is worse than reacting slowly. `AutomationCoordinator` holds an end for `endCooldown`
 and cancels it if a new meeting begins.
 
+**A manual claim is evidence, not a special case.** The menu switch, an App Intent and an
+AppleScript command all resolve to the same call — `MeetingMonitor.setInMeeting` — which asserts
+or retracts `definitive`-confidence evidence from a synthetic `"manual"` detector. It competes for
+precedence exactly like Teams or the microphone tier rather than bypassing fusion, which is why
+declaring a meeting by hand outranks every detector rather than merely overriding the UI.
+
 ## Modules
 
 | Path | Contents |
@@ -48,6 +54,9 @@ and cancels it if a new meeting begins.
 | `Sources/MeetingFocusApp/Detectors` | `TeamsAccessibilityDetector`, `AudioProcessDetector`, `BundleIdentifierResolver`, marker loading |
 | `Sources/MeetingFocusApp/Accessibility` | `AXElement` wrapper, permission handling, `AXChangeObserver` |
 | `Sources/MeetingFocusApp/Automation` | `ShortcutsAutomationHandler`, `FocusShortcutInstaller` |
+| `Sources/MeetingFocusApp/Intents` | `IntentBridge` (weak link to the live `MeetingMonitor`), the three App Intents |
+| `Sources/MeetingFocusApp/Scripting` | `ScriptingSupport` — the Cocoa Scripting properties and commands the sdef describes |
+| `Resources/MeetingFocus.sdef` | The AppleScript dictionary: `tell application "MeetingFocus"` terminology, English-only (see `docs/constraints.md` C8) |
 | `Sources/MeetingFocusApp/UI` | `MenuBarController` (the status item and its menu, in AppKit — see the type's own note for why not `MenuBarExtra`), `SettingsView` |
 | `Sources/MeetingFocusApp/UI/Onboarding` | `OnboardingView`, `OnboardingFocusStep`, `OnboardingPage`, `WindowChrome` — the first-run window that installs the Focus shortcuts |
 | `Sources/MeetingFocusApp` | `MeetingMonitor` (wiring), `AppSettings`, app entry |

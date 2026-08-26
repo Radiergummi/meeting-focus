@@ -22,6 +22,10 @@ let repositoryRoot = URL(fileURLWithPath: #filePath)
 /// `\(name)` becomes `%@`, and which one is a matter of the interpolated TYPE — knowable to the
 /// compiler, not to a source scan. Comparing shapes sidesteps that without weakening anything else:
 /// the surrounding characters still have to agree exactly.
+///
+/// App Intents' `Summary`/`IntentDialog` interpolations (`\(\.$state)`) extract to a third spelling,
+/// `${state}` rather than a printf specifier — the parameter's own name, not its type. Collapsed the
+/// same way, for the same reason.
 private let placeholder = "\u{1}"
 
 private func shape(catalogKey key: String) -> String {
@@ -29,6 +33,7 @@ private func shape(catalogKey key: String) -> String {
     for specifier in ["%lld", "%lf", "%@", "%d", "%f"] {
         out = out.replacingOccurrences(of: specifier, with: placeholder)
     }
+    out = out.replacingOccurrences(of: "\\$\\{[^}]*\\}", with: placeholder, options: .regularExpression)
     return out
 }
 
@@ -44,7 +49,7 @@ private func shape(catalogKey key: String) -> String {
 private let localizingContexts = [
     "Text", "Label", "Button", "Toggle", "Picker", "Section", "Link", "Menu", "Stepper", "Tab",
     "TextField", "SecureField", "LabeledContent", "ContentUnavailableView", "LocalizedStringKey",
-    "LocalizedStringResource", "LocalizationValue",
+    "LocalizedStringResource", "LocalizationValue", "Summary", "IntentDescription", "IntentDialog",
 ]
 private let localizingLabels = [
     "localized", "titleKey", "title", "prompt", "header", "footer", "value", "message", "detail",

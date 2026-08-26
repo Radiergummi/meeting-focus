@@ -33,6 +33,10 @@
 	<string>$(MF_BUILD_RUN_URL)</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>MeetingFocus runs the Shortcuts you configure when a meeting starts or ends.</string>
+	<key>NSAppleScriptEnabled</key>
+	<true/>
+	<key>OSAScriptingDefinition</key>
+	<string>MeetingFocus.sdef</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>

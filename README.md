@@ -97,6 +97,49 @@ Disturb from the start:
 3. Create a second shortcut, e.g. `Meeting Ended`, with **Set Focus** set to **Off**.
 4. In MeetingFocus → Settings, pick those two shortcuts from the dropdowns.
 
+## Controlling MeetingFocus from Shortcuts
+
+MeetingFocus also exposes three actions to Shortcuts, Spotlight and `shortcuts run`, for driving it
+from the outside rather than being driven by it:
+
+- **Set Meeting State** — tells MeetingFocus you are (or are not) in a meeting, for up to 8 hours.
+  Overrules what the detectors see, exactly like the menu bar switch. Returns the expiry time.
+- **Clear Meeting Override** — withdraws a manual claim and lets MeetingFocus go back to detecting.
+  A detected meeting already in progress keeps running; this only retracts the manual claim. It does
+  not undo a dismissal ("Not in a meeting") — that lifts only once the dismissed detector's own
+  evidence goes quiet.
+- **Get Meeting Status** — reports whether MeetingFocus believes you are in a meeting, as a `Bool`
+  a Shortcuts `If` block can branch on directly.
+
+**If the actions do not appear in Shortcuts:** macOS indexes an app's intents only once its bundle
+is registered with Launch Services. Launch MeetingFocus once from `/Applications`, then look again.
+
+## Controlling MeetingFocus from AppleScript
+
+The same actions are also reachable from `osascript`, `tell application` and any other Apple
+Events client — useful from a shell script or another scriptable app, where App Intents are not
+reachable:
+
+```sh
+osascript -e 'tell application "MeetingFocus" to get meeting state'
+osascript -e 'tell application "MeetingFocus" to set in meeting to true'
+osascript -e 'tell application "MeetingFocus" to get in meeting'
+osascript -e 'tell application "MeetingFocus" to set meeting state to true for 5 titled "Deep work"'
+osascript -e 'tell application "MeetingFocus" to get override expires'
+osascript -e 'tell application "MeetingFocus" to clear meeting override'
+```
+
+`meeting state`, `manual` and `override expires` are read-only; `in meeting` is the writable
+switch that takes the default hour, the same as the menu. `set meeting state … for … titled …` is
+the only form that can name a duration and a title together. The dictionary is visible from Script
+Editor's File → Open Dictionary…, and, like any Apple Events client, the first call raises an
+Automation permission prompt attributed to the calling app (Terminal, typically) — that is macOS's
+usual TCC gate, not a MeetingFocus permission.
+
+A read lags a write by about a second, on both surfaces: state is debounced and only re-evaluated
+on a 1-second tick, so `Get Meeting Status` or `get in meeting` checked immediately after a `Set
+Meeting State` call can still report the previous state.
+
 ## When detection breaks
 
 The Teams detector matches internal HTML element ids that Microsoft can rename in any release.

@@ -2,6 +2,7 @@ import XCTest
 @testable import MeetingFocusCore
 
 @MainActor
+// swiftlint:disable:next type_body_length
 final class MeetingStateMachineTests: XCTestCase {
     private var clock: TestClock!
     private var events: [MeetingEvent]!
@@ -327,5 +328,24 @@ final class MeetingStateMachineTests: XCTestCase {
         enterMeeting()
         XCTAssertTrue(machine.isInMeeting)
         XCTAssertEqual(started.count, 2)
+    }
+
+    /// Withdrawing a manual claim is not the same statement as "I am not in a meeting". A duration
+    /// lapsing must leave a call a detector can see running, or the timer would silently suppress a
+    /// real meeting for as long as it lasted. The dismissal tests above cover the other half.
+    func testRetractingTheManualClaimLeavesADetectedMeetingRunning() {
+        let manual = "manual"
+        machine.ingest(evidence(.inMeeting, subject: manual, detector: manual, at: clock.now))
+        machine.ingest(evidence(.inMeeting, subject: Subjects.teams, at: clock.now))
+        clock.advance(1.0)
+        machine.tick()
+        XCTAssertEqual(started.count, 2)
+
+        machine.retractEvidence(fromDetector: manual)
+
+        XCTAssertTrue(machine.isInMeeting, "the Teams call is still in progress")
+        XCTAssertEqual(machine.state(forSubject: Subjects.teams), .inMeeting)
+        XCTAssertEqual(machine.state(forSubject: manual), .idle)
+        XCTAssertEqual(ended.count, 1, "only the manual claim ends")
     }
 }

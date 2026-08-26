@@ -19,6 +19,23 @@ documentation belong in the commit history, not here.
   the update dialog, the disk image you download shows it as the volume icon, and the first-run
   setup window opens with it. The menu bar keeps its own symbol, because that one has to change
   with the meeting.
+- Three App Intents — **Set Meeting State**, **Clear Meeting Override**, **Get Meeting Status** —
+  so a Shortcut, Spotlight or `shortcuts run` can set and read the meeting state from outside the
+  app. `Get Meeting Status` returns a plain `Bool` rather than a richer entity, so a Shortcuts `If`
+  block can branch on it without a string comparison.
+- An AppleScript dictionary, so `osascript`, `tell application` and any other Apple Events client
+  can read and set meeting state the same way the App Intents do — `in meeting`, `meeting state`,
+  `meeting title`, `manual` and `override expires` as properties, plus `set meeting state … for …
+  titled …` and `clear meeting override` as commands. Script Editor's Open Dictionary shows the
+  full terminology.
+
+### Fixed
+
+- A scripting command sent before the app had finished launching reported success having done
+  nothing. It now fails with an Apple Event error, the way the equivalent App Intent already threw.
+- An automation that renewed its manual claim on a short interval wrote a detection-log line every
+  time, flushing all twenty entries within minutes and evicting whatever someone opened the log to
+  read. A renewal is now silent; only a fresh declaration is logged.
 
 ## [0.1.1] — 2026-08-26
 
