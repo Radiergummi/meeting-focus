@@ -19,10 +19,14 @@
 - **Every new user-visible literal needs a String Catalogue key in the same commit as the literal.** `Tests/LocalizationTests` fails both directions — a literal with no key, and a key with no literal — so a commit that adds one without the other breaks `make test`. Add keys with `./.build/xcstrings add --catalog Localizable --key "…" --translation "de=…"` (build the tool once with `make xcstrings`), then `./.build/xcstrings fmt --catalog Localizable`.
 - **`Text(String)` renders verbatim.** Literals must reach `Text`, `Label`, `Button`, `Toggle`, `Picker` or `Tab` directly, or travel as `LocalizedStringKey`. A `String` parameter or a ternary inside `Text(...)` silently ships English.
 - SwiftLint runs as CI runs it and rejects identifiers shorter than 3 characters. Avoid `on`, `id`, `to` as parameter or variable names.
+  This bit Task 1: the enum cases were originally `on`/`off` in this plan and failed `swiftlint
+  lint --strict` (`Makefile:123`). They are `turnOn`/`turnOff` throughout, and `.swiftlint.yml` was
+  deliberately not relaxed. `String(decoding:as:)` fails `optional_data_string_conversion` for the
+  same reason — use `String(bytes:encoding:)`.
 - `shortcuts sign` has two undocumented requirements, each producing the same "isn't in the correct format" error: the input must be a **binary** plist, and the input path must end in **`.shortcut`**.
 - The imported shortcut takes its name from the **filename** of the file that is opened.
 - Copy must not name Teams. Per-app detectors are the next piece of work, after which Teams is one adapter among several. Say "your meeting apps".
-- `Resources/` is wholesale in the app's resources build phase (`project.yml:44`), so a new file dropped there is bundled with no project change.
+- `Resources/` is a folder entry in `project.yml:44`, but xcodegen emits **explicit** file references, so a new file there is NOT bundled until `MeetingFocus.xcodeproj/project.pbxproj` is regenerated. `make build` does that automatically (the `$(PBXPROJ)` target depends on the source directory list), and the regenerated file is tracked and must be committed. Task 1 shipped `focus-shortcut.json` without it, so the resource sat outside the bundle until Task 3's build picked it up.
 - End every commit message with the two trailer lines this repository uses:
   ```
   Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
@@ -42,7 +46,7 @@
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `FocusMode(identifier: String, name: String)`; `enum FocusShortcutDirection { case on, off }`; `FocusShortcutRecipe` with `static let fallback` and `init(from:)`; `FocusShortcut.plistData(recipe: FocusShortcutRecipe, focus: FocusMode, direction: FocusShortcutDirection) throws -> Data`.
+- Produces: `FocusMode(identifier: String, name: String)`; `enum FocusShortcutDirection { case turnOn, turnOff }`; `FocusShortcutRecipe` with `static let fallback` and `init(from:)`; `FocusShortcut.plistData(recipe: FocusShortcutRecipe, focus: FocusMode, direction: FocusShortcutDirection) throws -> Data`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -70,7 +74,7 @@ final class FocusShortcutTests: XCTestCase {
 
     func testOnCarriesTheFocusAndHoldsUntilTurnedOff() throws {
         let params = try parameters(
-            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .on)
+            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .turnOn)
         )
         XCTAssertEqual(params["Enabled"] as? Int, 1)
         XCTAssertEqual(params["AssertionType"] as? String, "Turned Off")
@@ -83,7 +87,7 @@ final class FocusShortcutTests: XCTestCase {
     /// Shortcuts shows as a nonsense summary.
     func testOffOmitsTheAssertion() throws {
         let params = try parameters(
-            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .off)
+            FocusShortcut.plistData(recipe: recipe, focus: work, direction: .turnOff)
         )
         XCTAssertEqual(params["Enabled"] as? Int, 0)
         XCTAssertNil(params["AssertionType"])
@@ -92,8 +96,8 @@ final class FocusShortcutTests: XCTestCase {
     /// `shortcuts sign` rejects an XML plist with the same error it gives for a wrong file
     /// extension, so a format regression here is expensive to diagnose from the outside.
     func testOutputIsABinaryPlist() throws {
-        let data = try FocusShortcut.plistData(recipe: recipe, focus: work, direction: .on)
-        XCTAssertEqual(String(decoding: data.prefix(6), as: UTF8.self), "bplist")
+        let data = try FocusShortcut.plistData(recipe: recipe, focus: work, direction: .turnOn)
+        XCTAssertEqual(try XCTUnwrap(String(bytes: data.prefix(6), encoding: .utf8)), "bplist")
     }
 
     func testShippedRecipeDecodesAndMatchesTheFallback() throws {
@@ -145,7 +149,7 @@ public struct FocusMode: Equatable, Sendable, Identifiable {
 }
 
 public enum FocusShortcutDirection: Sendable {
-    case on, off
+    case turnOn, turnOff
 }
 
 private enum RecipeCodingKeys: String, CodingKey {
@@ -263,13 +267,13 @@ public enum FocusShortcut {
         direction: FocusShortcutDirection
     ) throws -> Data {
         var parameters: [String: Any] = [
-            recipe.parameterKeys.enabled: direction == .on ? 1 : 0,
+            recipe.parameterKeys.enabled: direction == .turnOn ? 1 : 0,
             recipe.parameterKeys.focusModes: [
                 recipe.parameterKeys.modeIdentifier: focus.identifier,
                 recipe.parameterKeys.modeDisplayName: focus.name,
             ],
         ]
-        if direction == .on {
+        if direction == .turnOn {
             parameters[recipe.parameterKeys.assertionType] = recipe.assertionTypeWhenOn
         }
 
@@ -904,8 +908,8 @@ enum FocusShortcutInstaller {
     /// user's library permanently — which is why they are localized rather than fixed English.
     static func shortcutName(for direction: FocusShortcutDirection) -> String {
         switch direction {
-        case .on: String(localized: "MeetingFocus – Focus On")
-        case .off: String(localized: "MeetingFocus – Focus Off")
+        case .turnOn: String(localized: "MeetingFocus – Focus On")
+        case .turnOff: String(localized: "MeetingFocus – Focus Off")
         }
     }
 
@@ -1075,8 +1079,8 @@ struct OnboardingFocusStep: View {
         ]
         Task {
             do {
-                try FocusShortcutInstaller.install(focus: focus, direction: .on)
-                try FocusShortcutInstaller.install(focus: focus, direction: .off)
+                try FocusShortcutInstaller.install(focus: focus, direction: .turnOn)
+                try FocusShortcutInstaller.install(focus: focus, direction: .turnOff)
             } catch {
                 failure = error.localizedDescription
                 installing = false

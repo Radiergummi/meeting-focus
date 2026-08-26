@@ -26,9 +26,12 @@ documentation belong in the commit history, not here.
 
 - A failed Shortcut no longer leaves its error message in the menu until the app is relaunched. The
   message now clears the next time a shortcut runs successfully.
-- Three pieces of the menu could never be translated, because they were typed as plain `String`
-  where SwiftUI only localizes `LocalizedStringKey`: the status line ("In a meeting"), the
-  Monitoring and Automation rows, and the menu bar icon's VoiceOver label.
+- Five pieces of the UI could never be translated, because they were typed as plain `String` where
+  SwiftUI only localizes `LocalizedStringKey`: the status line ("In a meeting"), the Monitoring and
+  Automation rows, the menu bar icon's VoiceOver label, and the two shortcut-picker row labels in
+  Settings.
+- The Accessibility status line in Settings had no catalogue entry at all, so it read English under
+  every locale.
 
 ## [0.1.0] — 2026-08-25
 

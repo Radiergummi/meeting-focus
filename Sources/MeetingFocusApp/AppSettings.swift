@@ -77,8 +77,11 @@ final class AppSettings {
     var debugMode: Bool = false {
         didSet { defaults.set(debugMode, forKey: Key.debugMode) }
     }
-    /// False on a fresh install *and* on an existing one, which is deliberate: an installation that
-    /// predates onboarding has no shortcut configured either, so it benefits from the same walk.
+    /// False on a fresh install *and* on an existing one, which is deliberate: someone upgrading from
+    /// before onboarding existed might not have a shortcut configured, so offering the same walk is a
+    /// reasonable default. But it's a default, not a guarantee — `OnboardingFocusStep` does not trust
+    /// this flag alone; it seeds its own `installed` state from `isAutomationConfigured` so an
+    /// existing configuration is never silently overwritten.
     var onboardingCompleted: Bool = false {
         didSet { defaults.set(onboardingCompleted, forKey: Key.onboardingCompleted) }
     }

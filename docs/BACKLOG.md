@@ -110,7 +110,7 @@ anything but weak corroboration.
 
 ---
 
-## P2 — Requested features not yet built
+## P2 — Requested features
 
 ### 8. App icon
 There is no asset catalogue and no `ASSETCATALOG_COMPILER_APPICON_NAME`, so the app ships with the

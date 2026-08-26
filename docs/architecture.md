@@ -49,7 +49,7 @@ and cancels it if a new meeting begins.
 | `Sources/MeetingFocusApp/Accessibility` | `AXElement` wrapper, permission handling, `AXChangeObserver` |
 | `Sources/MeetingFocusApp/Automation` | `ShortcutsAutomationHandler`, `FocusShortcutInstaller` |
 | `Sources/MeetingFocusApp/UI` | `MenuBarView`, `SettingsView` |
-| `Sources/MeetingFocusApp/UI/Onboarding` | `OnboardingView`, `OnboardingFocusStep` — the first-run window that installs the Focus shortcuts |
+| `Sources/MeetingFocusApp/UI/Onboarding` | `OnboardingView`, `OnboardingFocusStep`, `OnboardingPage`, `WindowChrome` — the first-run window that installs the Focus shortcuts |
 | `Sources/MeetingFocusApp` | `MeetingMonitor` (wiring), `AppSettings`, app entry |
 | `Resources/teams-markers.json` | Teams element ids, as data so they can be patched |
 | `Resources/focus-shortcut.json` | The Set Focus action's identifier and parameter shape, as data so they can be patched |

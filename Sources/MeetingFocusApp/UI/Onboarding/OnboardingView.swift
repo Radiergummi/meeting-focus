@@ -4,7 +4,7 @@ import SwiftUI
 struct OnboardingView: View {
     /// The steps, in order. `permission` and `focus` are skippable; the two copy-only ends are not,
     /// because there is nothing on them to skip.
-    enum Step: Int, CaseIterable {
+    enum Step: Int {
         case welcome, permission, focus, finish
     }
 
@@ -123,7 +123,7 @@ struct OnboardingView: View {
                 OnboardingRow(
                     symbol: "gearshape",
                     title: "Change anything later",
-                    detail: "Detectors, automation and this setup are all in Settings."
+                    detail: "Detectors and automation are in Settings; this setup is in the menu bar."
                 ),
             ],
             back: { back() },

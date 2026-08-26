@@ -36,19 +36,23 @@ private func shape(catalogKey key: String) -> String {
 
 /// The call sites whose string argument is localized. Deliberately a list rather than "every string
 /// literal": most literals in this codebase are bundle identifiers, log messages and marker ids, none
-/// of which belong in a catalogue. An initializer missing from this list surfaces as a false DEAD key
-/// rather than silently passing, which is the safe direction to be wrong in.
+/// of which belong in a catalogue.
+///
+/// A name missing from this list means its literals are never *required* to have a key, so they pass
+/// silently — not, as an earlier version of this comment claimed, that they surface as a dead key.
+/// Adding a localizing helper here is the only thing that enforces its callers.
 private let localizingContexts = [
     "Text", "Label", "Button", "Toggle", "Picker", "Section", "Link", "Menu", "Stepper", "Tab",
     "TextField", "SecureField", "LabeledContent", "ContentUnavailableView", "LocalizedStringKey",
     "LocalizedStringResource", "LocalizationValue",
 ]
-private let localizingLabels = ["localized", "titleKey", "title", "prompt", "header", "footer", "value"]
+private let localizingLabels = [
+    "localized", "titleKey", "title", "prompt", "header", "footer", "value", "message", "detail",
+]
 /// This project's own helpers that take a `LocalizedStringKey`. Such a helper is a localizing site
 /// every bit as much as `Text(` is, and without it named here its callers' literals would look like
-/// plain strings to this scan. There are none at present — the menu bar's rows are `Toggle`s and
-/// `Label`s directly — so the list is empty rather than absent.
-private let localizingHelpers: [String] = []
+/// plain strings to this scan.
+private let localizingHelpers = ["shortcutPicker"]
 private let localizingModifiers = [
     "help", "navigationTitle", "navigationSubtitle", "accessibilityLabel", "confirmationDialog",
     "alert", "searchable",
@@ -57,13 +61,33 @@ private let localizingModifiers = [
 /// than passed to any initializer.
 private let localizingTypes = ["LocalizedStringResource", "LocalizedStringKey"]
 
+/// `before` ends with `pattern`, and — when the pattern starts with an identifier character — what
+/// precedes it does not continue that identifier.
+///
+/// The boundary check is the whole point, and its absence was a real bug rather than a hypothetical
+/// one. A bare `hasSuffix("Picker(")` matches `shortcutPicker(`, so a helper taking a plain `String`
+/// read as a localizing site: its callers' literals were required to have keys, the keys existed, the
+/// suite was green, and the strings rendered English under every locale. A false *pass* is the one
+/// direction this scan must never fail in, because nothing downstream catches it.
+///
+/// Patterns that begin with punctuation — `.help(`, `: LocalizedStringKey = ` — need no check: a `.`
+/// or a `:` cannot be the middle of an identifier, and requiring a non-identifier before the dot
+/// would reject the `foo.help(` that modifiers are always written as.
+private func endsWithToken(_ before: Substring, _ pattern: String) -> Bool {
+    guard before.hasSuffix(pattern) else { return false }
+    guard let first = pattern.first, first.isLetter || first == "_" else { return true }
+    let patternStart = before.index(before.endIndex, offsetBy: -pattern.count)
+    guard patternStart > before.startIndex else { return true }
+    let previous = before[before.index(before: patternStart)]
+    return !(previous.isLetter || previous.isNumber || previous == "_")
+}
+
 private func isLocalizingSite(_ before: Substring) -> Bool {
-    let tail = String(before.suffix(80))
-    if localizingContexts.contains(where: { tail.hasSuffix("\($0)(") }) { return true }
-    if localizingHelpers.contains(where: { tail.hasSuffix("\($0)(") }) { return true }
-    if localizingModifiers.contains(where: { tail.hasSuffix(".\($0)(") }) { return true }
-    if localizingTypes.contains(where: { tail.hasSuffix(": \($0) = ") }) { return true }
-    return localizingLabels.contains { tail.hasSuffix("\($0): ") || tail.hasSuffix("\($0):") }
+    if localizingContexts.contains(where: { endsWithToken(before, "\($0)(") }) { return true }
+    if localizingHelpers.contains(where: { endsWithToken(before, "\($0)(") }) { return true }
+    if localizingModifiers.contains(where: { endsWithToken(before, ".\($0)(") }) { return true }
+    if localizingTypes.contains(where: { endsWithToken(before, ": \($0) = ") }) { return true }
+    return localizingLabels.contains { endsWithToken(before, "\($0): ") || endsWithToken(before, "\($0):") }
 }
 
 // MARK: - Reading Swift string literals

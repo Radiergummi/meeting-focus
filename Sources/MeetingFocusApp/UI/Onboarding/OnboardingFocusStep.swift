@@ -65,6 +65,15 @@ struct OnboardingFocusStep: View {
                 .disabled(installing)
             }
         )
+        // Seeds `installed` from what's actually configured rather than assuming a fresh `false`:
+        // that's true both when we installed our own pair, and when the user already has some
+        // automation of their own — so we never offer to overwrite a working setup, whether that's
+        // ours from before a back-navigation, or one they configured by hand before onboarding
+        // existed. Trade-off, stated honestly: someone with *some* automation configured will not be
+        // offered our Do Not Disturb pair from onboarding. Settings → Automation is where they would
+        // change it. That's the right default — silently replacing a working configuration is worse
+        // than not offering an optional convenience.
+        .task { installed = settings.isAutomationConfigured }
     }
 
     private func install() {

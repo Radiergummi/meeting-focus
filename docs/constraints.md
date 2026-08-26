@@ -42,8 +42,9 @@ requested programmatically — the user must add the app by hand in System Setti
 Found the expensive way: during the design spike the file was read successfully from a shell that
 happened to already hold Full Disk Access, and the spec generalised from that one read to
 "readable, no prompt, no API" — a Focus picker was designed on that premise. The app itself cannot
-read it. Its own unified log says so: `no Focus configuration file at
-/Users/moritz/Library/DoNotDisturb/DB/ModeConfigurations.json`. Anything verified from a
+read it. Its own unified log said so: `no Focus configuration file at
+/Users/moritz/Library/DoNotDisturb/DB/ModeConfigurations.json` — logged by `FocusModeCatalog`,
+since deleted. Anything verified from a
 privileged shell must be re-verified from the app's own process before it becomes a design
 assumption.
 

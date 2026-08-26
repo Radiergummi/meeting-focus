@@ -70,6 +70,23 @@
         }
       }
     },
+    "Accessibility not granted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bedienungshilfen nicht erlaubt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility not granted"
+          }
+        }
+      }
+    },
     "Accessibility permission lets MeetingFocus read the windows of your meeting apps, which is how it can tell a real meeting from an open app. Without it, detection falls back to microphone activity alone." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -327,19 +344,19 @@
         }
       }
     },
-    "Detectors, automation and this setup are all in Settings." : {
+    "Detectors and automation are in Settings; this setup is in the menu bar." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erkennung, Automatisierung und diese Einrichtung findest du in den Einstellungen."
+            "value" : "Erkennung und Automatisierung findest du in den Einstellungen; diese Einrichtung in der Menüleiste."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Detectors, automation and this setup are all in Settings."
+            "value" : "Detectors and automation are in Settings; this setup is in the menu bar."
           }
         }
       }

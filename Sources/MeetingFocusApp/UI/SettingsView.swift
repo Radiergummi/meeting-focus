@@ -89,7 +89,13 @@ struct SettingsView: View {
                 HStack {
                     Image(systemName: monitor.accessibilityTrusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                         .foregroundStyle(monitor.accessibilityTrusted ? Color.green : Color.orange)
-                    Text(monitor.accessibilityTrusted ? "Accessibility granted" : "Accessibility not granted")
+                    // Two calls rather than a ternary inside one: the coverage scan keys on the text
+                    // immediately before a literal, and `Text(cond ? "a" : "b")` hides both from it.
+                    if monitor.accessibilityTrusted {
+                        Text("Accessibility granted")
+                    } else {
+                        Text("Accessibility not granted")
+                    }
                     Spacer()
                     if !monitor.accessibilityTrusted {
                         Button("Open Settings…") { AccessibilityAuthorization.openSystemSettings() }
@@ -171,7 +177,9 @@ struct SettingsView: View {
 
     /// Offers real shortcut names where possible; typing is still allowed, since Shortcuts may be
     /// unavailable or the user may want to name one they have not created yet.
-    private func shortcutPicker(_ title: String, selection: Binding<String>) -> some View {
+    /// `LocalizedStringKey`, not `String`: `Text(String)` renders verbatim, so as a plain string the
+    /// two row labels here had catalogue keys that were never looked up — green tests, English UI.
+    private func shortcutPicker(_ title: LocalizedStringKey, selection: Binding<String>) -> some View {
         HStack {
             Text(title)
             Spacer()
