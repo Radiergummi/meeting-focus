@@ -10,6 +10,33 @@ Related: [`constraints.md`](constraints.md) tracks platform limits and which are
 
 ---
 
+## Waiting on one meeting — planned for 2026-08-28
+
+**Items 4, 5 and 6 are one sitting, not three tasks.** All three need the same input and nothing
+else: a real Teams call. Deferred from 2026-08-27 for want of a meeting, so the next call is where
+the project's only open P0 and its highest-leverage unknown both get settled. Run all three at once
+— a call spent measuring one of them is a call wasted on the other two.
+
+```sh
+# before joining
+make axprobe
+/usr/bin/log stream --level debug --predicate 'subsystem == "me.mazetti.meetingfocus"'   # item 4
+./.build/axprobe correlate com.microsoft.teams2 600                                      # item 5
+
+# while sitting in the pre-join lobby, before joining
+./.build/axprobe ids com.microsoft.teams2                                                # item 6
+```
+
+Then: mute for ~15 seconds, unmute, leave. What each one answers — detection → event → shortcut
+firing in the real app (4); whether `input` ever reads `idle` while `ax` reads `in-call` (5); whether
+the lobby exposes anything resembling `prejoin-join-button` (6).
+
+The probe was blind to Teams' web tree until 2026-08-27 and is not any more; see the prerequisite
+note under item 5. Also worth holding in view while running it: `correlate` reporting `ax=blind`
+means the wake was refused, which is a finding about Chromium and not a result about muting.
+
+---
+
 ## P0 — Correctness of claims already made
 
 ### 1. Re-release through CI so the shipped build actually has provenance — done
@@ -119,7 +146,7 @@ refuses to draw a conclusion from a run that never saw a call. What remains is r
 make axprobe && ./.build/axprobe correlate com.microsoft.teams2 600
 ```
 
-Prerequisite discharged 2026-08-26: the probe did not perform the write that wakes Chromium's web
+Prerequisite discharged 2026-08-27: the probe did not perform the write that wakes Chromium's web
 tree — only the app did — so this run would have read `ax` as `no-call` for the whole call and
 measured nothing. `AccessibilityWake` is now shared with `axprobe` through `AXPROBE_SOURCES`, and
 `correlate` distinguishes a blind run from a call-less one in its own summary rather than reporting
@@ -135,7 +162,7 @@ in-call half is unmeasured because it needs a call.
 `UNVERIFIED` — they are inferred, never observed. A 26-second lobby *was* measured, so the state is
 real; the ids are guesses. Capture the lobby with `axprobe ids com.microsoft.teams2` while sitting
 in a pre-join screen, then either fix them or delete them. (That command only became trustworthy on
-2026-08-26 — see the prerequisite note under item 5; before it, an empty capture would have been the
+2026-08-27 — see the prerequisite note under item 5; before it, an empty capture would have been the
 dormant tree rather than a wrong guess.) Shipping a guess that silently never
 matches is worse than shipping no `joining` state.
 
