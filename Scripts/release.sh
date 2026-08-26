@@ -65,8 +65,17 @@ xcodebuild -project MeetingFocus.xcodeproj -scheme MeetingFocusCoreTests \
 
 step "Archiving"
 rm -rf "$ARCHIVE" "$EXPORT_DIR" "$STAGE"
+# Signed with Developer ID here rather than left to automatic signing. Automatic signing resolves
+# the *archive* to a development certificate — a build-time input that export then re-signs and
+# discards, but which must still exist. On a developer's machine it always does, so the requirement
+# is invisible; on a clean runner holding only the Developer ID key it fails the archive outright,
+# which is exactly how it was found. This script only ever produces something to distribute, so the
+# distribution certificate is the honest input at every step.
 xcodebuild -project MeetingFocus.xcodeproj -scheme MeetingFocus \
     -configuration Release -archivePath "$ARCHIVE" \
+    CODE_SIGN_STYLE=Manual \
+    CODE_SIGN_IDENTITY="Developer ID Application" \
+    DEVELOPMENT_TEAM="$TEAM_ID" \
     "${BUILD_SETTINGS[@]}" archive | tail -3
 
 step "Exporting with Developer ID"

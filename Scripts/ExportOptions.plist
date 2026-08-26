@@ -6,8 +6,10 @@
   <string>developer-id</string>
   <key>teamID</key>
   <string>TH593VRB6W</string>
+  <!-- Manual, to match the archive: automatic signing here would go looking for a development
+       certificate that a release machine has no reason to hold. -->
   <key>signingStyle</key>
-  <string>automatic</string>
+  <string>manual</string>
   <key>destination</key>
   <string>export</string>
 </dict>
