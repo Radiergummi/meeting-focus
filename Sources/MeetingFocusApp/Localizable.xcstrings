@@ -796,7 +796,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "MeetingFocus startet noch. Versuchen Sie es gleich noch einmal."
+            "value" : "MeetingFocus startet noch. Versuch's gleich noch einmal."
           }
         },
         "en" : {
@@ -1227,7 +1227,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Gibt an, ob MeetingFocus davon ausgeht, dass Sie sich in einer Besprechung befinden."
+            "value" : "Gibt an, ob MeetingFocus davon ausgeht, dass du dich in einer Besprechung befindest."
           }
         },
         "en" : {
@@ -1501,7 +1501,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Teilt MeetingFocus mit, ob Sie sich in einer Besprechung befinden, und überschreibt damit die Erkennung."
+            "value" : "Teilt MeetingFocus mit, ob du dich in einer Besprechung befindest, und überschreibt damit die Erkennung."
           }
         },
         "en" : {
