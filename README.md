@@ -97,6 +97,21 @@ Disturb from the start:
 3. Create a second shortcut, e.g. `Meeting Ended`, with **Set Focus** set to **Off**.
 4. In MeetingFocus → Settings, pick those two shortcuts from the dropdowns.
 
+## Controlling MeetingFocus from Shortcuts
+
+MeetingFocus also exposes three actions to Shortcuts, Spotlight and `shortcuts run`, for driving it
+from the outside rather than being driven by it:
+
+- **Set Meeting State** — tells MeetingFocus you are (or are not) in a meeting, for up to 8 hours.
+  Overrules what the detectors see, exactly like the menu bar switch. Returns the expiry time.
+- **Clear Meeting Override** — withdraws a manual claim and lets MeetingFocus go back to detecting.
+  A detected meeting already in progress keeps running; this only retracts the manual claim.
+- **Get Meeting Status** — reports whether MeetingFocus believes you are in a meeting, as a `Bool`
+  a Shortcuts `If` block can branch on directly.
+
+**If the actions do not appear in Shortcuts:** macOS indexes an app's intents only once its bundle
+is registered with Launch Services. Launch MeetingFocus once from `/Applications`, then look again.
+
 ## When detection breaks
 
 The Teams detector matches internal HTML element ids that Microsoft can rename in any release.

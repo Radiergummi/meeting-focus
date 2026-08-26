@@ -23,6 +23,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Puts the icon in the menu bar. Deliberate rather than incidental: `body` also touches this
         // lazy property to wire its actions, and the icon must not depend on that happening first.
         _ = menuBar
+        // Intents and scripting commands are built by the system and handed nothing; this is their
+        // only route to the object this launch is about.
+        IntentBridge.monitor = monitor
         Task { await monitor.start() }
     }
 

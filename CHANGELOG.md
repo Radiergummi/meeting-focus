@@ -13,6 +13,13 @@ documentation belong in the commit history, not here.
 
 ## [Unreleased]
 
+### Added
+
+- Three App Intents — **Set Meeting State**, **Clear Meeting Override**, **Get Meeting Status** —
+  so a Shortcut, Spotlight or `shortcuts run` can set and read the meeting state from outside the
+  app. `Get Meeting Status` returns a plain `Bool` rather than a richer entity, so a Shortcuts `If`
+  block can branch on it without a string comparison.
+
 ## [0.1.1] — 2026-08-26
 
 ### Added

@@ -24,7 +24,9 @@
 		6E537853DA0E2FD6542420A0 /* OnboardingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A7BBEC51928D04EC946050 /* OnboardingPage.swift */; };
 		7E5231C33C389FCE103CDC19 /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = C696E14F19E234AF7295DE64 /* Updater.swift */; };
 		875E1A08CBE639A85E8309C9 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD4C8CD54CDE8AD3E9EA993 /* Log.swift */; };
+		89FA70D290013C8D8192B8F8 /* MeetingStateIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661D266E0E430C4F9347BC86 /* MeetingStateIntents.swift */; };
 		8BF84D3F61ACB8D60E26E5BF /* TeamsAccessibilityDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B8088C209F2CD989AD87CB /* TeamsAccessibilityDetector.swift */; };
+		900C37D8E6A5BD4591F5D848 /* IntentBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFC9A6E06768E605A1D489E /* IntentBridge.swift */; };
 		9811F7EF0BF194B724E7C7E0 /* teams-markers.json in Resources */ = {isa = PBXBuildFile; fileRef = EBF16149B6698E453693F39E /* teams-markers.json */; };
 		A9262633CCA0D493000B12EF /* BundleIdentifierResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92577C382924CA98FF15129 /* BundleIdentifierResolver.swift */; };
 		AF3361D69D7618AF7CA183A7 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A10175F4AA4A8CD8F535275 /* AppSettings.swift */; };
@@ -44,14 +46,16 @@
 		1595DB0B5DCE5BA5B646648E /* ShortcutsAutomationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsAutomationHandler.swift; sourceTree = "<group>"; };
 		1AD4C8CD54CDE8AD3E9EA993 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		21942EA1769D284CCB2CE397 /* OnboardingFocusStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFocusStep.swift; sourceTree = "<group>"; };
-		263668BA411F8876BE67CD72 /* meeting-state-detector */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "meeting-state-detector"; path = .; sourceTree = SOURCE_ROOT; };
 		34E71989389D1BA959E80B4D /* MeetingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMonitor.swift; sourceTree = "<group>"; };
+		3AFC9A6E06768E605A1D489E /* IntentBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentBridge.swift; sourceTree = "<group>"; };
 		4A245A05E5382FA6B12DD3DC /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		4B03AE540E94073C9D96E15A /* AudioAllowlistLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAllowlistLoading.swift; sourceTree = "<group>"; };
 		54CDAC45DCDAC02298640B2B /* WindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowChrome.swift; sourceTree = "<group>"; };
 		5B0C7179611BB44AD9548274 /* TeamsMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsMarkers.swift; sourceTree = "<group>"; };
+		263668BA411F8876BE67CD72 /* meeting-state-detector */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "meeting-state-detector"; path = .; sourceTree = SOURCE_ROOT; };
 		62A2B6ECAD008E37871BD254 /* focus-shortcut.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "focus-shortcut.json"; sourceTree = "<group>"; };
 		641CECF9D29D759FE80C0BC6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		661D266E0E430C4F9347BC86 /* MeetingStateIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingStateIntents.swift; sourceTree = "<group>"; };
 		6A10175F4AA4A8CD8F535275 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		75914D031F9BEC4160612293 /* MenuRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRows.swift; sourceTree = "<group>"; };
 		8CD1C9EBE2587DF367F628EB /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
@@ -114,6 +118,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		183C2E77E9E531D94513D844 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				3AFC9A6E06768E605A1D489E /* IntentBridge.swift */,
+				661D266E0E430C4F9347BC86 /* MeetingStateIntents.swift */,
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
 		294FF8DD2101D8805ED8162F /* Accessibility */ = {
 			isa = PBXGroup;
 			children = (
@@ -157,6 +170,7 @@
 				4C2783DAC862F6F85D837DD6 /* Automation */,
 				0C3863496A2405CA19DD72DD /* Detectors */,
 				AFEEDCEE72AA06ADC0E542D4 /* Diagnostics */,
+				183C2E77E9E531D94513D844 /* Intents */,
 				AA93291980FD4D64570AA86B /* UI */,
 			);
 			path = MeetingFocusApp;
@@ -310,10 +324,12 @@
 				EFDD85DCE0663213E5E9A6F0 /* BuildInfo.swift in Sources */,
 				A9262633CCA0D493000B12EF /* BundleIdentifierResolver.swift in Sources */,
 				FE5C0BADED08684351BC0C26 /* FocusShortcutInstaller.swift in Sources */,
+				900C37D8E6A5BD4591F5D848 /* IntentBridge.swift in Sources */,
 				4AEC632CB5539EE071C91D50 /* LaunchAtLogin.swift in Sources */,
 				875E1A08CBE639A85E8309C9 /* Log.swift in Sources */,
 				56C7B07479B31AA30D199F4D /* MeetingFocusApp.swift in Sources */,
 				E69B777CA21D916C19D712BB /* MeetingMonitor.swift in Sources */,
+				89FA70D290013C8D8192B8F8 /* MeetingStateIntents.swift in Sources */,
 				55B45CA319138A34678F2298 /* MenuBarController.swift in Sources */,
 				F689F619DD2DF795853DE4FF /* MenuRows.swift in Sources */,
 				B5975E09300075C830238C20 /* OnboardingFocusStep.swift in Sources */,

@@ -241,6 +241,23 @@
         }
       }
     },
+    "Clear Meeting Override" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Manuelle Besprechungsangabe löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear Meeting Override"
+          }
+        }
+      }
+    },
     "Continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -430,6 +447,23 @@
         }
       }
     },
+    "Get Meeting Status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Besprechungsstatus abrufen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Meeting Status"
+          }
+        }
+      }
+    },
     "Get Started" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -546,6 +580,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "In a meeting"
+          }
+        }
+      }
+    },
+    "In a meeting: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "In einer Besprechung: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In a meeting: %@"
           }
         }
       }
@@ -722,6 +773,40 @@
         }
       }
     },
+    "Meeting State" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Besprechungsstatus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting State"
+          }
+        }
+      }
+    },
+    "MeetingFocus is still starting up. Try again in a moment." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "MeetingFocus startet noch. Versuchen Sie es gleich noch einmal."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeetingFocus is still starting up. Try again in a moment."
+          }
+        }
+      }
+    },
     "MeetingFocus lives in your menu bar and starts working straight away." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -822,6 +907,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Microsoft Teams (Accessibility)"
+          }
+        }
+      }
+    },
+    "Minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Minuten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minutes"
           }
         }
       }
@@ -1119,6 +1221,23 @@
         }
       }
     },
+    "Reports whether MeetingFocus believes you are in a meeting." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Gibt an, ob MeetingFocus davon ausgeht, dass Sie sich in einer Besprechung befinden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reports whether MeetingFocus believes you are in a meeting."
+          }
+        }
+      }
+    },
     "Run Shortcuts on meeting changes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1149,6 +1268,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Runs a Shortcut when a meeting starts and ends. MeetingFocus can set one up for you."
+          }
+        }
+      }
+    },
+    "Set Meeting State" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Besprechungsstatus festlegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Meeting State"
           }
         }
       }
@@ -1325,6 +1461,23 @@
         }
       }
     },
+    "State" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Status"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "State"
+          }
+        }
+      }
+    },
     "Stays on this Mac" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1338,6 +1491,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stays on this Mac"
+          }
+        }
+      }
+    },
+    "Tells MeetingFocus whether you are in a meeting, overruling what it has detected." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Teilt MeetingFocus mit, ob Sie sich in einer Besprechung befinden, und überschreibt damit die Erkennung."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tells MeetingFocus whether you are in a meeting, overruling what it has detected."
           }
         }
       }
@@ -1423,6 +1593,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This copy was built by a public GitHub Actions run from the commit above, and that run recorded a signed provenance attestation over the artifact. You can check it yourself:"
+          }
+        }
+      }
+    },
+    "Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Titel"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
           }
         }
       }
@@ -1627,6 +1814,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "When the last meeting ends"
+          }
+        }
+      }
+    },
+    "Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Zieht eine manuelle Angabe zurück und lässt MeetingFocus wieder selbst erkennen. Eine erkannte Besprechung läuft dabei unverändert weiter."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Withdraws a manual claim and lets MeetingFocus go back to detecting. Leaves a detected meeting running."
           }
         }
       }
