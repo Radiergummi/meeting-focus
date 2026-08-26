@@ -76,6 +76,39 @@ final class MeetingStateMachineTests: XCTestCase {
         XCTAssertEqual(started.count, 1)
     }
 
+    /// Holding on unreadable evidence is right, and holding forever is not: `indeterminate` is
+    /// discarded however fresh it is, so a detector that has gone blind but is still reporting keeps
+    /// the hold alive indefinitely. That is a meeting nothing in the system can end.
+    func testAnEndlesslyUnreadableSubjectIsEventuallyGivenUpOn() {
+        enterMeeting()
+        // Twenty minutes of a detector saying "I cannot tell", five seconds apart. Never stale,
+        // never usable — the dormant Teams tree during a muted call.
+        for _ in 0..<240 {
+            machine.ingest(evidence(.indeterminate, at: clock.now))
+            clock.advance(5)
+            machine.tick()
+        }
+        XCTAssertFalse(machine.isInMeeting)
+        XCTAssertEqual(ended.count, 1, "given up on once, not once per tick")
+        XCTAssertNotNil(ended.first?.endedAt)
+    }
+
+    /// Giving up is not the same as going deaf: the subject behaves normally the moment its
+    /// detector can read something again.
+    func testASubjectGivenUpOnStartsTheNextMeetingNormally() {
+        enterMeeting()
+        machine.ingest(evidence(.indeterminate, at: clock.now))
+        clock.advance(601)
+        machine.tick()
+        XCTAssertEqual(ended.count, 1)
+
+        machine.ingest(evidence(.inMeeting, at: clock.now))
+        clock.advance(2)
+        machine.tick()
+        XCTAssertTrue(machine.isInMeeting)
+        XCTAssertEqual(started.count, 2)
+    }
+
     // 4
     func testDuplicateEvidenceProducesOneTransition() {
         for _ in 0..<20 {

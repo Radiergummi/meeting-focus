@@ -29,7 +29,7 @@ final class AppSettings {
             Key.teamsDetectorEnabled: true,
             Key.audioDetectorEnabled: true,
             Key.automationEnabled: true,
-            Key.endCooldownSeconds: 45.0,
+            Key.endCooldownSeconds: 20.0,
             Key.showMenuBarIcon: true,
             Key.onboardingCompleted: false,
             Key.onboardingStep: 0,
@@ -78,7 +78,11 @@ final class AppSettings {
     var endShortcutIdentifier: String = "" {
         didSet { defaults.set(endShortcutIdentifier, forKey: Key.endShortcutIdentifier) }
     }
-    var endCooldownSeconds: Double = 45 {
+    /// How long an end is held before the end shortcut runs. Long enough to swallow the measured
+    /// 12-second gap between back-to-back meetings, and no longer: every second here is a second of
+    /// silence after a call that is already over, and the first thing a user does about that is
+    /// reach for the Focus toggle themselves.
+    var endCooldownSeconds: Double = 20 {
         didSet { defaults.set(endCooldownSeconds, forKey: Key.endCooldownSeconds) }
     }
     /// Hiding the icon leaves an `LSUIElement` app with no visible UI at all, so

@@ -29,8 +29,28 @@ documentation belong in the commit history, not here.
   titled …` and `clear meeting override` as commands. Script Editor's Open Dictionary shows the
   full terminology.
 
+### Changed
+
+- Your Focus mode is now released 20 seconds after a meeting ends rather than 45. The wait exists
+  only to swallow the gap between back-to-back meetings, which was measured at 12 seconds; the
+  remaining half-minute was time spent silent after a call that was already over, and long enough
+  that reaching for the Focus toggle yourself was the faster option. Installations that already
+  have a value keep it — the slider is in Settings.
+
 ### Fixed
 
+- **A Focus mode could be left on with nothing able to turn it off again.** Everything the app knew
+  about a meeting in progress lived in memory, so quitting, crashing, installing an update or
+  rebooting during a call ended the only thing that could have run your end shortcut. The next
+  launch started from a blank slate and turned nothing off; if that launch landed during the same
+  call it ran the start shortcut a second time over a Focus mode that was already on. The app now
+  remembers that it turned your Focus on and picks that up again at launch — so the meeting ends
+  normally, and a relaunch mid-call is invisible.
+- A meeting could never end if the detector watching it went blind without saying so. Unreadable
+  accessibility data correctly holds the previous state rather than ending a meeting, but a
+  detector that keeps reporting "I cannot tell" held it indefinitely — a Teams window whose
+  interface went dormant while your microphone was muted had that shape. The hold now gives up
+  after ten minutes.
 - A scripting command sent before the app had finished launching reported success having done
   nothing. It now fails with an Apple Event error, the way the equivalent App Intent already threw.
 - An automation that renewed its manual claim on a short interval wrote a detection-log line every

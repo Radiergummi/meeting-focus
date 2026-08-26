@@ -16,17 +16,23 @@ public final class MeetingStateMachine {
         public var endGrace: TimeInterval
         /// Evidence older than this is treated as absent rather than authoritative.
         public var evidenceTTL: TimeInterval
+        /// How long a state may be held on unusable evidence before the machine gives up on it.
+        /// Generous, because holding is the right answer for every ordinary loss of signal — but
+        /// finite, because "hold forever" means a meeting nothing can end.
+        public var unresolvedHold: TimeInterval
 
         public init(
             definitiveStartGrace: TimeInterval = 1,
             corroboratingStartGrace: TimeInterval = 3,
             endGrace: TimeInterval = 5,
-            evidenceTTL: TimeInterval = 30
+            evidenceTTL: TimeInterval = 30,
+            unresolvedHold: TimeInterval = 600
         ) {
             self.definitiveStartGrace = definitiveStartGrace
             self.corroboratingStartGrace = corroboratingStartGrace
             self.endGrace = endGrace
             self.evidenceTTL = evidenceTTL
+            self.unresolvedHold = unresolvedHold
         }
     }
 
@@ -36,6 +42,8 @@ public final class MeetingStateMachine {
         var meeting: Meeting?
         var pendingState: MeetingState?
         var pendingSince: Date?
+        /// When this subject's evidence last stopped resolving to anything, or nil while it does.
+        var unresolvedSince: Date?
     }
 
     private let configuration: Configuration
@@ -200,11 +208,22 @@ public final class MeetingStateMachine {
 
         // No usable evidence: hold the previous state. This is the "temporary loss of
         // accessibility information" case, and it must never end a meeting.
+        //
+        // Not indefinitely, though. Staleness is not the only way evidence becomes unusable:
+        // `indeterminate` is discarded however fresh it is, so a detector that has gone blind but
+        // is still reporting keeps this branch alive forever — a dormant Teams accessibility tree
+        // during a muted call is exactly that shape. Held with nothing else to say about the
+        // subject, the meeting would never end and the Focus mode would never come back off.
         guard let resolved else {
             subject.pendingState = nil
             subject.pendingSince = nil
-            return []
+            let since = subject.unresolvedSince ?? now
+            subject.unresolvedSince = since
+            guard subject.state != .idle,
+                  now.timeIntervalSince(since) >= configuration.unresolvedHold else { return [] }
+            return abandon(subject: &subject, now: now)
         }
+        subject.unresolvedSince = nil
 
         let target: MeetingState = switch resolved.verdict {
         case .inMeeting: .inMeeting
@@ -238,6 +257,18 @@ public final class MeetingStateMachine {
         subject.pendingState = nil
         subject.pendingSince = nil
         return commit(subject: &subject, to: target, using: resolved, now: now)
+    }
+
+    /// Gives up on a subject whose evidence has been unusable for too long, ending whatever it was
+    /// holding open. Deliberately not `commit`: there is no resolved evidence to commit *to*, which
+    /// is the whole reason we are here.
+    private func abandon(subject: inout Subject, now: Date) -> [MeetingEvent] {
+        subject.unresolvedSince = nil
+        subject.state = .idle
+        guard var meeting = subject.meeting else { return [] }
+        meeting.endedAt = now
+        subject.meeting = nil
+        return [.ended(meeting)]
     }
 
     private func requiredGrace(

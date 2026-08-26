@@ -71,7 +71,7 @@ public struct MeetingEvidence: Sendable, Equatable {
 }
 
 /// A meeting the application believes the user is participating in.
-public struct Meeting: Sendable, Equatable, Identifiable {
+public struct Meeting: Sendable, Equatable, Identifiable, Codable {
     public let id: UUID
     public let applicationName: String
     public let applicationBundleID: String

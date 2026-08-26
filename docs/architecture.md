@@ -33,12 +33,21 @@ meeting — without either detector knowing the other exists.
 
 **`indeterminate` is a first-class verdict.** "I could not read the accessibility tree" is not
 "there is no meeting". Only the latter may end a meeting; the former holds the previous state.
-Without this distinction, every transient hiccup would fire a spurious end.
+Without this distinction, every transient hiccup would fire a spurious end. The hold is bounded by
+`unresolvedHold` (10 minutes) — long past any real hiccup, but finite, because a detector that has
+gone blind while still reporting would otherwise pin a meeting open forever.
 
 **Detection time and automation time are different.** The UI must reflect reality immediately.
 Automation must not, because back-to-back meetings are normal and flapping a Focus mode between
 two calls is worse than reacting slowly. `AutomationCoordinator` holds an end for `endCooldown`
 and cancels it if a new meeting begins.
+
+**Automation state outlives the process.** A Focus mode is a system-wide fact, so the belief that
+we turned one on is persisted rather than held in memory: `AutomationCoordinator` writes the
+running meeting to an `AutomationStateStore` and adopts whatever it finds there at construction.
+Without that, quitting, crashing, updating or rebooting mid-meeting left the Focus mode on with
+nothing left in the system that could ever turn it off — and a relaunch during the same call ran
+the start shortcut a second time over a Focus that was already on.
 
 **A manual claim is evidence, not a special case.** The menu switch, an App Intent and an
 AppleScript command all resolve to the same call — `MeetingMonitor.setInMeeting` — which asserts

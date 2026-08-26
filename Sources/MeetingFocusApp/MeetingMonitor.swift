@@ -31,9 +31,17 @@ final class MeetingMonitor {
         }
         coordinator = AutomationCoordinator(
             configuration: .init(endCooldown: settings.endCooldownSeconds),
-            timeSource: timeSource
+            timeSource: timeSource,
+            store: AutomationStateDefaults()
         ) { [weak self] command in
             self?.perform(command)
+        }
+        // A Focus mode the last launch turned on is still on. Saying so out loud is worth the two
+        // lines: the alternative is an end shortcut firing a minute into a launch with nothing
+        // anywhere to explain why.
+        if coordinator.isAutomationActive {
+            Log.automation.info("adopted automation left running by the previous launch")
+            note("Automation resumed from the previous launch")
         }
         claim = ManualClaim(timeSource: timeSource) { [weak self] command in
             self?.apply(command)

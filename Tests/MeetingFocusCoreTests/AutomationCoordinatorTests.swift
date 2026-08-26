@@ -5,14 +5,23 @@ import XCTest
 final class AutomationCoordinatorTests: XCTestCase {
     private var clock: TestClock!
     private var commands: [AutomationCommand]!
+    private var store: TestAutomationStore!
     private var coordinator: AutomationCoordinator!
 
     override func setUp() async throws {
         clock = TestClock()
         commands = []
-        coordinator = AutomationCoordinator(
+        store = TestAutomationStore()
+        coordinator = makeCoordinator(store: store)
+    }
+
+    /// Every coordinator in this file reports into the same `commands`, so a restored one can be
+    /// built mid-test without losing what the first said.
+    private func makeCoordinator(store: TestAutomationStore) -> AutomationCoordinator {
+        AutomationCoordinator(
             configuration: .init(endCooldown: 45),
-            timeSource: clock
+            timeSource: clock,
+            store: store
         ) { [self] in commands.append($0) }
     }
 
@@ -131,5 +140,71 @@ final class AutomationCoordinatorTests: XCTestCase {
     func testEndImmediatelyDoesNothingWhenIdle() {
         coordinator.endImmediately()
         XCTAssertTrue(commands.isEmpty)
+    }
+
+    // MARK: Surviving the process
+
+    /// What is recorded has to match what was run, or a relaunch acts on a Focus mode that is not on.
+    func testTheRunningMeetingIsRecordedAtTheStartAndClearedAtTheEnd() {
+        coordinator.update(isInMeeting: true, activeMeeting: meeting("Standup"))
+        XCTAssertEqual(store.runningMeeting?.title, "Standup")
+
+        coordinator.update(isInMeeting: false, activeMeeting: nil)
+        XCTAssertNotNil(store.runningMeeting, "an end inside the cooldown has not run yet")
+
+        clock.advance(46)
+        coordinator.tick()
+        XCTAssertNil(store.runningMeeting)
+    }
+
+    func testEndImmediatelyClearsTheRecord() {
+        coordinator.update(isInMeeting: true, activeMeeting: meeting("Standup"))
+        coordinator.endImmediately()
+        XCTAssertNil(store.runningMeeting)
+    }
+
+    /// The failure this store exists for: the app went away mid-meeting — quit, crashed, updated,
+    /// rebooted — and the Focus mode it turned on outlived it. A fresh coordinator has to be able to
+    /// end a meeting it never saw begin.
+    func testAdoptsAutomationLeftRunningByThePreviousLaunch() {
+        let store = TestAutomationStore(runningMeeting: meeting("Standup"))
+        let relaunched = makeCoordinator(store: store)
+        XCTAssertTrue(relaunched.isAutomationActive)
+
+        relaunched.update(isInMeeting: false, activeMeeting: nil)
+        clock.advance(46)
+        relaunched.tick()
+
+        XCTAssertEqual(endedTitles, ["Standup"])
+        XCTAssertNil(store.runningMeeting)
+    }
+
+    /// The observed fingerprint of the bug: relaunches during a call re-firing the start shortcut
+    /// three seconds later, over a Focus mode already on, with no end between them.
+    func testRelaunchingDuringTheSameMeetingDoesNotStartTwice() {
+        let call = meeting("Standup")
+        let store = TestAutomationStore(runningMeeting: call)
+        let relaunched = makeCoordinator(store: store)
+
+        // The detectors have not reported yet, then they do.
+        relaunched.update(isInMeeting: false, activeMeeting: nil)
+        clock.advance(3)
+        relaunched.update(isInMeeting: true, activeMeeting: call)
+        clock.advance(600)
+        relaunched.tick()
+
+        XCTAssertTrue(commands.isEmpty, "the Focus mode was already on; nothing needed running")
+        XCTAssertFalse(relaunched.hasPendingEnd)
+        XCTAssertEqual(store.runningMeeting?.title, "Standup")
+    }
+
+    /// An empty record is the ordinary case, and must not invent an end at every launch.
+    func testAnEmptyRecordStartsIdle() {
+        let relaunched = makeCoordinator(store: TestAutomationStore())
+        relaunched.update(isInMeeting: false, activeMeeting: nil)
+        clock.advance(600)
+        relaunched.tick()
+        XCTAssertTrue(commands.isEmpty)
+        XCTAssertFalse(relaunched.isAutomationActive)
     }
 }

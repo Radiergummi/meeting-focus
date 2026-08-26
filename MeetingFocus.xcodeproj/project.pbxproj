@@ -10,6 +10,7 @@
 		0973F3E164F5C816137630C4 /* ScriptingSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4DC4BEC61BCBB2A5C237949 /* ScriptingSupport.swift */; };
 		0F6A287AA3C00ABEE387677E /* MeetingFocusCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2FA45C7A1676DADA4C0729B9 /* MeetingFocusCore */; };
 		1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040B04DFB875BFABA3508896 /* AudioProcessDetector.swift */; };
+		25CCD0399DC13D7D978F14D9 /* AutomationStateDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD00C82C4AD7A0F07617B7E /* AutomationStateDefaults.swift */; };
 		38EEBCA315EB7AF2A3B0B5E9 /* focus-shortcut.json in Resources */ = {isa = PBXBuildFile; fileRef = 62A2B6ECAD008E37871BD254 /* focus-shortcut.json */; };
 		3DC8EE9C87316454744305F5 /* WindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54CDAC45DCDAC02298640B2B /* WindowChrome.swift */; };
 		4252EF914D31C864E939CF79 /* MeetingFocus.sdef in Resources */ = {isa = PBXBuildFile; fileRef = 2C5A1F88FAA79DF2A0DCFC9C /* MeetingFocus.sdef */; };
@@ -48,6 +49,7 @@
 		1595DB0B5DCE5BA5B646648E /* ShortcutsAutomationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsAutomationHandler.swift; sourceTree = "<group>"; };
 		1AD4C8CD54CDE8AD3E9EA993 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		21942EA1769D284CCB2CE397 /* OnboardingFocusStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFocusStep.swift; sourceTree = "<group>"; };
+		263668BA411F8876BE67CD72 /* meeting-state-detector */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "meeting-state-detector"; path = .; sourceTree = SOURCE_ROOT; };
 		2C5A1F88FAA79DF2A0DCFC9C /* MeetingFocus.sdef */ = {isa = PBXFileReference; path = MeetingFocus.sdef; sourceTree = "<group>"; };
 		34E71989389D1BA959E80B4D /* MeetingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMonitor.swift; sourceTree = "<group>"; };
 		3AFC9A6E06768E605A1D489E /* IntentBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentBridge.swift; sourceTree = "<group>"; };
@@ -55,7 +57,6 @@
 		4B03AE540E94073C9D96E15A /* AudioAllowlistLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAllowlistLoading.swift; sourceTree = "<group>"; };
 		54CDAC45DCDAC02298640B2B /* WindowChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowChrome.swift; sourceTree = "<group>"; };
 		5B0C7179611BB44AD9548274 /* TeamsMarkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsMarkers.swift; sourceTree = "<group>"; };
-		619FDFDE72A4D061FDD56147 /* meeting-state-detector */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "meeting-state-detector"; path = .; sourceTree = SOURCE_ROOT; };
 		62A2B6ECAD008E37871BD254 /* focus-shortcut.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "focus-shortcut.json"; sourceTree = "<group>"; };
 		641CECF9D29D759FE80C0BC6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		661D266E0E430C4F9347BC86 /* MeetingStateIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingStateIntents.swift; sourceTree = "<group>"; };
@@ -73,6 +74,7 @@
 		B79AB959AAC371A3DB5E2296 /* AXChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXChangeObserver.swift; sourceTree = "<group>"; };
 		BA4001B03DC26F988AEDDB6A /* AXSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXSupport.swift; sourceTree = "<group>"; };
 		C696E14F19E234AF7295DE64 /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
+		CCD00C82C4AD7A0F07617B7E /* AutomationStateDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationStateDefaults.swift; sourceTree = "<group>"; };
 		DBE79B26962593FE09A75138 /* BuildInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.swift; sourceTree = "<group>"; };
 		DD2A966E8A2FA52E8AC14C18 /* MeetingFocus.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = MeetingFocus.icon; sourceTree = "<group>"; };
 		E7B49AFBA47E0C4BD34E406F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 		4C2783DAC862F6F85D837DD6 /* Automation */ = {
 			isa = PBXGroup;
 			children = (
+				CCD00C82C4AD7A0F07617B7E /* AutomationStateDefaults.swift */,
 				98BED26D88457D490F555D3C /* FocusShortcutInstaller.swift */,
 				1595DB0B5DCE5BA5B646648E /* ShortcutsAutomationHandler.swift */,
 			);
@@ -212,7 +215,7 @@
 		74A877CBD97247C78C996305 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				619FDFDE72A4D061FDD56147 /* meeting-state-detector */,
+				263668BA411F8876BE67CD72 /* meeting-state-detector */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -336,6 +339,7 @@
 				AF3361D69D7618AF7CA183A7 /* AppSettings.swift in Sources */,
 				47A5B0EFA93EA7B3AF606D84 /* AudioAllowlistLoading.swift in Sources */,
 				1E5F8A0D859E2A39B096260E /* AudioProcessDetector.swift in Sources */,
+				25CCD0399DC13D7D978F14D9 /* AutomationStateDefaults.swift in Sources */,
 				EFDD85DCE0663213E5E9A6F0 /* BuildInfo.swift in Sources */,
 				A9262633CCA0D493000B12EF /* BundleIdentifierResolver.swift in Sources */,
 				FE5C0BADED08684351BC0C26 /* FocusShortcutInstaller.swift in Sources */,

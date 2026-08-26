@@ -13,6 +13,18 @@ public enum AutomationCommand: Sendable, Equatable {
     case meetingEnded(Meeting)
 }
 
+/// Where the coordinator remembers what automation is currently running, so that the decision to
+/// end it can outlive the process that decided to start it.
+///
+/// Without this the entire end decision lives in one object's memory, and a quit, a crash, a
+/// Sparkle update or a reboot mid-meeting leaves the user's Focus mode on with nothing left in the
+/// system that could ever turn it off. A Focus mode is a system-wide fact; our belief about it must
+/// be persisted like one.
+@MainActor
+public protocol AutomationStateStore: AnyObject {
+    var runningMeeting: Meeting? { get set }
+}
+
 /// Decides *when* automation runs, which is not the same question as when a meeting starts.
 ///
 /// Detection state must track reality immediately so the UI is honest. Automation must not,
@@ -24,27 +36,39 @@ public enum AutomationCommand: Sendable, Equatable {
 public final class AutomationCoordinator {
     public struct Configuration: Sendable {
         public var endCooldown: TimeInterval
-        public init(endCooldown: TimeInterval = 45) { self.endCooldown = endCooldown }
+        public init(endCooldown: TimeInterval = 20) { self.endCooldown = endCooldown }
     }
 
     private enum State { case idle, active }
 
     private let configuration: Configuration
     private let timeSource: TimeSource
+    private let store: AutomationStateStore
     private let onCommand: @MainActor (AutomationCommand) -> Void
 
     private var state: State = .idle
     private var lastMeeting: Meeting?
     private var pendingEnd: (meeting: Meeting, since: Date)?
 
+    /// Adopts whatever automation the last launch left running, rather than starting from idle.
+    ///
+    /// Both halves of that matter. An end becomes possible again for a meeting this process never
+    /// saw begin — the failure this store exists for. And a relaunch that lands *during* the same
+    /// call no longer runs the start a second time over a Focus mode that is already on.
     public init(
         configuration: Configuration = Configuration(),
         timeSource: TimeSource,
+        store: AutomationStateStore,
         onCommand: @escaping @MainActor (AutomationCommand) -> Void
     ) {
         self.configuration = configuration
         self.timeSource = timeSource
+        self.store = store
         self.onCommand = onCommand
+        if let running = store.runningMeeting {
+            state = .active
+            lastMeeting = running
+        }
     }
 
     /// Feed the aggregate state after every state-machine evaluation.
@@ -57,7 +81,7 @@ public final class AutomationCoordinator {
             if state == .idle {
                 state = .active
                 if let meeting = activeMeeting ?? lastMeeting {
-                    onCommand(.meetingStarted(meeting))
+                    emit(.meetingStarted(meeting))
                 }
             }
         } else if state == .active, pendingEnd == nil, let meeting = lastMeeting {
@@ -71,20 +95,30 @@ public final class AutomationCoordinator {
         guard timeSource.now.timeIntervalSince(pending.since) >= configuration.endCooldown else { return }
         pendingEnd = nil
         state = .idle
-        onCommand(.meetingEnded(pending.meeting))
+        emit(.meetingEnded(pending.meeting))
     }
 
     /// Ends automation now, bypassing `endCooldown`.
     ///
     /// The cooldown exists to absorb the gap between back-to-back meetings, which is a detector
     /// artefact. An explicit instruction from the user is not that artefact, and a Focus mode that
-    /// stays on for three quarters of a minute after the switch is flipped reads as broken.
+    /// stays on for another cooldown after the switch is flipped reads as broken.
     /// Authoritative in the same way `MeetingStateMachine.applicationTerminated` is.
     public func endImmediately() {
         pendingEnd = nil
         guard state == .active, let meeting = lastMeeting else { return }
         state = .idle
-        onCommand(.meetingEnded(meeting))
+        emit(.meetingEnded(meeting))
+    }
+
+    /// The one place a command leaves this object, so that what is persisted and what is run can
+    /// never disagree: the store is written before the command is handed on, never beside it.
+    private func emit(_ command: AutomationCommand) {
+        switch command {
+        case .meetingStarted(let meeting): store.runningMeeting = meeting
+        case .meetingEnded: store.runningMeeting = nil
+        }
+        onCommand(command)
     }
 
     public var isAutomationActive: Bool { state == .active }

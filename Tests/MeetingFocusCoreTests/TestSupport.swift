@@ -9,6 +9,14 @@ final class TestClock: TimeSource, @unchecked Sendable {
     func advance(_ seconds: TimeInterval) { current = current.addingTimeInterval(seconds) }
 }
 
+/// The coordinator's persistence, in memory. Standing in for `UserDefaults` here is the point:
+/// what these tests are about is a coordinator reading a record it did not write.
+@MainActor
+final class TestAutomationStore: AutomationStateStore {
+    var runningMeeting: Meeting?
+    init(runningMeeting: Meeting? = nil) { self.runningMeeting = runningMeeting }
+}
+
 enum Subjects {
     static let teams = "com.microsoft.teams2"
     static let zoom = "us.zoom.xos"

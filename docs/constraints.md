@@ -206,7 +206,7 @@ depth 70, rely on early exit for speed.
 
 ### D3. Back-to-back meetings are normal
 Measured a genuine 12-second gap between two real meetings. Automation needs an `endCooldown`
-(45 s default) separate from detection debounce, or Focus flaps between consecutive meetings.
+(20 s default) separate from detection debounce, or Focus flaps between consecutive meetings.
 
 ### D4. AX polling does **not** measurably cost Teams CPU
 Instantaneous sampling, Teams idle, 2 s poll of a ~434-node tree:
