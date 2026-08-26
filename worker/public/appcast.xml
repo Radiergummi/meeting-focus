@@ -3,6 +3,14 @@
     <channel>
         <title>MeetingFocus</title>
         <item>
+            <title>0.1.2</title>
+            <pubDate>Wed, 26 Aug 2026 22:15:57 +0200</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/Radiergummi/meeting-focus/releases/download/v0.1.2/MeetingFocus-0.1.2.dmg" length="5419794" type="application/octet-stream" sparkle:edSignature="BuNGqH4w9Z6vJQCRBLNwAFfAaQGAFq4+FQFWOvkHuYqMCZRvhaOf6YvoZP0YQrEWWKzq6QCP0hLz/t2w5ndlDg=="/>
+        </item>
+        <item>
             <title>0.1.0</title>
             <pubDate>Tue, 25 Aug 2026 13:22:32 +0200</pubDate>
             <sparkle:version>1</sparkle:version>
