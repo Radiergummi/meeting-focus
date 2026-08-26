@@ -184,4 +184,55 @@ final class MeetingStateMachineTests: XCTestCase {
         machine.tick()
         XCTAssertEqual(started.first?.startedAt, actualStart)
     }
+
+    // MARK: Retraction
+
+    /// Turning off the only detector that can see a meeting must end it, and must end it *here* —
+    /// letting the evidence expire instead would hold the meeting open forever, because absent
+    /// evidence deliberately holds the previous state. A held meeting means the end shortcut never
+    /// runs and the user's Focus never releases.
+    func testRetractingTheOnlyDetectorEndsTheMeeting() {
+        enterMeeting()
+        machine.retractEvidence(fromDetector: "teams.ax")
+        XCTAssertFalse(machine.isInMeeting)
+        XCTAssertEqual(ended.count, 1)
+        XCTAssertNotNil(ended.first?.endedAt)
+    }
+
+    /// Ending is authoritative, not debounced: the user turned the signal off, so there is nothing
+    /// left to wait for.
+    func testRetractionIgnoresTheEndGrace() {
+        enterMeeting()
+        machine.retractEvidence(fromDetector: "teams.ax")
+        XCTAssertEqual(ended.count, 1, "must not wait out endGrace")
+    }
+
+    /// The other tier still says the meeting is happening, so it is still happening.
+    func testRetractingOneOfTwoDetectorsLeavesTheOtherInCharge() {
+        machine.ingest(evidence(.inMeeting, detector: "teams.ax", at: clock.now))
+        machine.ingest(evidence(.inMeeting, detector: "audio.process", confidence: .corroborating, at: clock.now))
+        clock.advance(1)
+        machine.tick()
+        XCTAssertTrue(machine.isInMeeting)
+
+        machine.retractEvidence(fromDetector: "teams.ax")
+        XCTAssertTrue(machine.isInMeeting, "the audio tier still sees it")
+        XCTAssertTrue(ended.isEmpty)
+    }
+
+    /// Turning off a detector that never said anything about this subject is not an event.
+    func testRetractingASilentDetectorChangesNothing() {
+        enterMeeting()
+        machine.retractEvidence(fromDetector: "audio.process")
+        XCTAssertTrue(machine.isInMeeting)
+        XCTAssertTrue(ended.isEmpty)
+    }
+
+    /// Retracting while idle must not manufacture an `ended` for a meeting that never started.
+    func testRetractingWhileIdleEmitsNothing() {
+        machine.ingest(evidence(.notInMeeting, detector: "teams.ax", at: clock.now))
+        machine.retractEvidence(fromDetector: "teams.ax")
+        XCTAssertFalse(machine.isInMeeting)
+        XCTAssertTrue(events.isEmpty)
+    }
 }

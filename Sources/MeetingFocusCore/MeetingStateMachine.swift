@@ -82,6 +82,43 @@ public final class MeetingStateMachine {
         }
     }
 
+    /// Drops everything one detector has said, about every subject, and settles the consequences
+    /// immediately.
+    ///
+    /// Switching a detector off cannot simply stop its stream. Evidence that merely goes stale makes
+    /// `EvidenceFusion.resolve` return nil, and `evaluate()` then holds the previous state rather
+    /// than assuming idleness — right for a detector that has briefly lost sight of things, wrong
+    /// for one the user has turned off, which would pin a meeting open with nothing left in the
+    /// system that could ever end it.
+    ///
+    /// Where another detector still has something to say about a subject, its verdict simply takes
+    /// over. Where nothing is left, the subject goes idle authoritatively, with no end grace: the
+    /// user removed the signal, which is not the same as a meeting quietening down.
+    public func retractEvidence(fromDetector detectorID: String) {
+        for (id, original) in subjects {
+            var subject = original
+            guard subject.evidenceByDetector.removeValue(forKey: detectorID) != nil else { continue }
+
+            guard subject.evidenceByDetector.isEmpty else {
+                subjects[id] = subject
+                continue
+            }
+
+            subject.pendingState = nil
+            subject.pendingSince = nil
+            let ending = subject.state == .inMeeting ? subject.meeting : nil
+            subject.state = .idle
+            subject.meeting = nil
+            subjects[id] = subject
+
+            if var meeting = ending {
+                meeting.endedAt = timeSource.now
+                onEvent(.ended(meeting))
+            }
+        }
+        evaluate()
+    }
+
     /// Re-evaluates debounces. Call periodically; nothing here depends on being called on time.
     public func tick() { evaluate() }
 

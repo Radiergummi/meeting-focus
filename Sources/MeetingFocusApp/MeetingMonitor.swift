@@ -54,6 +54,7 @@ final class MeetingMonitor {
         ) { [weak self] command in
             self?.perform(command)
         }
+        observeDetectorSettings()
     }
 
     // MARK: Lifecycle
@@ -63,18 +64,26 @@ final class MeetingMonitor {
         isMonitoring = true
         accessibilityTrusted = AccessibilityAuthorization.isTrusted
 
+        // Each disabled detector retracts what it previously said. Merely not starting it would
+        // leave its last evidence in the machine to go stale, and stale evidence holds the previous
+        // state rather than clearing it — see `MeetingStateMachine.retractEvidence`.
         if settings.teamsDetectorEnabled {
             let detector = TeamsAccessibilityDetector(markers: TeamsMarkers.load())
             teamsDetector = detector
             consume(detector.evidence)
             try? await detector.start()
+        } else {
+            machine.retractEvidence(fromDetector: TeamsAccessibilityDetector.detectorID)
         }
         if settings.audioDetectorEnabled {
             let detector = AudioProcessDetector(allowlist: Self.defaultAudioAllowlist)
             audioDetector = detector
             consume(detector.evidence)
             try? await detector.start()
+        } else {
+            machine.retractEvidence(fromDetector: AudioProcessDetector.detectorID)
         }
+        refresh()
 
         observeApplicationTermination()
         startTicking()
@@ -99,6 +108,28 @@ final class MeetingMonitor {
     func restart() async {
         await stop()
         await start()
+    }
+
+    /// Makes the detector switches in Settings take effect when they are flipped, rather than at the
+    /// next launch. Done here rather than in `SettingsView` so that it holds for *any* caller —
+    /// onboarding is expected to grow the same switches, and a fix that lives in one view would not
+    /// cover them.
+    ///
+    /// `withObservationTracking` reports only the first change, so this re-registers itself each
+    /// time. The hop through a task is not incidental either: `onChange` runs *before* the new value
+    /// is stored, so reacting synchronously would restart the detectors against the old setting.
+    private func observeDetectorSettings() {
+        withObservationTracking {
+            _ = settings.teamsDetectorEnabled
+            _ = settings.audioDetectorEnabled
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.observeDetectorSettings()
+                guard self.isMonitoring else { return }
+                await self.restart()
+            }
+        }
     }
 
     private func consume(_ stream: AsyncStream<MeetingEvidence>) {

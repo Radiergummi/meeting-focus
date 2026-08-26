@@ -18,7 +18,9 @@ import MeetingFocusCore
 /// `com.electron.wispr-flow` and `com.apple.CoreSpeech` were observed holding the microphone on
 /// the development machine; neither is a meeting.
 actor AudioProcessDetector: MeetingDetector {
-    let id = "audio.process"
+    /// See `TeamsAccessibilityDetector.detectorID`.
+    static let detectorID = "audio.process"
+    let id = AudioProcessDetector.detectorID
 
     private let allowlist: Set<String>
     private let pollInterval: Duration

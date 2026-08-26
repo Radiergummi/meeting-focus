@@ -12,7 +12,10 @@ import MeetingFocusCore
 /// Evidence from this detector is `definitive`, because it observes the meeting UI directly and is
 /// therefore unaffected by whether the microphone happens to be muted.
 actor TeamsAccessibilityDetector: MeetingDetector {
-    let id = "teams.accessibility"
+    /// Reachable without an instance, because `MeetingMonitor` has to name this detector precisely
+    /// when it is switched off — at which point there is no instance left to ask.
+    static let detectorID = "teams.accessibility"
+    let id = TeamsAccessibilityDetector.detectorID
 
     private struct Scan {
         var verdict: Verdict = .notInMeeting
