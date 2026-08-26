@@ -14,7 +14,6 @@ final class AppSettings {
         static let endShortcutName = "endShortcutName"
         static let endCooldownSeconds = "endCooldownSeconds"
         static let showMenuBarIcon = "showMenuBarIcon"
-        static let debugMode = "debugMode"
         static let onboardingCompleted = "onboardingCompleted"
         static let onboardingStep = "onboardingStep"
         static let onboardingLaunchCount = "onboardingLaunchCount"
@@ -30,7 +29,6 @@ final class AppSettings {
             Key.automationEnabled: true,
             Key.endCooldownSeconds: 45.0,
             Key.showMenuBarIcon: true,
-            Key.debugMode: false,
             Key.onboardingCompleted: false,
             Key.onboardingStep: 0,
             Key.onboardingLaunchCount: 0,
@@ -43,7 +41,6 @@ final class AppSettings {
         endShortcutName = defaults.string(forKey: Key.endShortcutName) ?? ""
         endCooldownSeconds = defaults.double(forKey: Key.endCooldownSeconds)
         showMenuBarIcon = defaults.bool(forKey: Key.showMenuBarIcon)
-        debugMode = defaults.bool(forKey: Key.debugMode)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
         onboardingStep = defaults.integer(forKey: Key.onboardingStep)
         onboardingLaunchCount = defaults.integer(forKey: Key.onboardingLaunchCount)
@@ -73,9 +70,6 @@ final class AppSettings {
     /// would be Activity Monitor.
     var showMenuBarIcon: Bool = true {
         didSet { defaults.set(showMenuBarIcon, forKey: Key.showMenuBarIcon) }
-    }
-    var debugMode: Bool = false {
-        didSet { defaults.set(debugMode, forKey: Key.debugMode) }
     }
     /// False on a fresh install *and* on an existing one, which is deliberate: someone upgrading from
     /// before onboarding existed might not have a shortcut configured, so offering the same walk is a

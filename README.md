@@ -102,7 +102,7 @@ Disturb from the start:
 The Teams detector matches internal HTML element ids that Microsoft can rename in any release.
 They live in `Resources/teams-markers.json` rather than in source, so a fix is a data change.
 
-To re-derive them, enable Debug mode in Settings and watch:
+To re-derive them, watch the log:
 
 ```sh
 /usr/bin/log stream --level debug --predicate 'subsystem == "me.mazetti.meetingfocus"'

@@ -48,7 +48,7 @@ and cancels it if a new meeting begins.
 | `Sources/MeetingFocusApp/Detectors` | `TeamsAccessibilityDetector`, `AudioProcessDetector`, `BundleIdentifierResolver`, marker loading |
 | `Sources/MeetingFocusApp/Accessibility` | `AXElement` wrapper, permission handling, `AXChangeObserver` |
 | `Sources/MeetingFocusApp/Automation` | `ShortcutsAutomationHandler`, `FocusShortcutInstaller` |
-| `Sources/MeetingFocusApp/UI` | `MenuBarView`, `SettingsView` |
+| `Sources/MeetingFocusApp/UI` | `MenuBarController` (the status item and its menu, in AppKit — see the type's own note for why not `MenuBarExtra`), `SettingsView` |
 | `Sources/MeetingFocusApp/UI/Onboarding` | `OnboardingView`, `OnboardingFocusStep`, `OnboardingPage`, `WindowChrome` — the first-run window that installs the Focus shortcuts |
 | `Sources/MeetingFocusApp` | `MeetingMonitor` (wiring), `AppSettings`, app entry |
 | `Resources/teams-markers.json` | Teams element ids, as data so they can be patched |

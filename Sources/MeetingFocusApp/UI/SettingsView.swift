@@ -63,7 +63,13 @@ struct SettingsView: View {
             }
 
             Section("Diagnostics") {
-                Toggle("Debug mode (show recent detections in the menu)", isOn: $settings.debugMode)
+                // The gesture is invisible by design — it is the Wi-Fi menu's — so this is the one
+                // place that says it out loud. Without the line, the read-out may as well not exist.
+                Text("""
+                    Hold ⌥ Option while opening the menu bar item to see which detectors are running \
+                    and the last few detections.
+                    """)
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

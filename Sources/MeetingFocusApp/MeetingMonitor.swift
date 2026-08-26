@@ -192,8 +192,10 @@ final class MeetingMonitor {
         }
     }
 
+    /// Recorded unconditionally: twenty strings cost nothing, and the alternative — a setting that
+    /// has to be switched on before the log starts filling — means the one detection someone wants to
+    /// explain has already happened by the time they go looking for it.
     private func note(_ message: String) {
-        guard settings.debugMode else { return }
         recentEvents.insert("\(Self.timeFormatter.string(from: Date()))  \(message)", at: 0)
         recentEvents = Array(recentEvents.prefix(20))
     }

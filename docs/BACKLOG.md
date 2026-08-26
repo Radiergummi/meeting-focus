@@ -72,9 +72,8 @@ one real call:
 
 Onboarding now sets `startShortcutName` and `endShortcutName` itself — it installs and selects both
 Do Not Disturb shortcuts before the user ever reaches Settings, which is what this item used to name
-as the blocking prerequisite. What remains is holding one real meeting and watching the log. Turning
-on Settings → Diagnostics → Debug mode also makes each detection visible in the menu while the call
-runs.
+as the blocking prerequisite. What remains is holding one real meeting and watching the log. Opening
+the menu bar item with ⌥ held also lists each detection while the call runs.
 
 Accessibility is granted: `me.mazetti.meetingfocus` carries `auth_value = 2` for
 `kTCCServiceAccessibility`, so nothing is blocked on permission.

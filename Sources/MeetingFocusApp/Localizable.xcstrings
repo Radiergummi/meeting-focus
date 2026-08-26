@@ -275,19 +275,20 @@
         }
       }
     },
-    "Debug mode (show recent detections in the menu)" : {
+    "Detected by %@" : {
+      "comment" : "Menu diagnostics row naming the detector that reported the current meeting.",
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Debug-Modus (letzte Erkennungen im Menü anzeigen)"
+            "value" : "Erkannt von %@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Debug mode (show recent detections in the menu)"
+            "value" : "Detected by %@"
           }
         }
       }
@@ -497,6 +498,24 @@
         }
       }
     },
+    "Hold ⌥ Option while opening the menu bar item to see which detectors are running and the last few detections." : {
+      "comment" : "Settings → Diagnostics; the only place the ⌥ gesture is written down.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Halte ⌥ Option gedrückt, während du das Menüleistensymbol öffnest, um zu sehen, welche Erkennungen laufen und was zuletzt erkannt wurde."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold ⌥ Option while opening the menu bar item to see which detectors are running and the last few detections."
+          }
+        }
+      }
+    },
     "Hollow when you are not in a meeting, dotted while you are joining, filled during one." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -646,6 +665,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Let MeetingFocus see your meetings"
+          }
+        }
+      }
+    },
+    "Listening for microphone input" : {
+      "comment" : "Menu diagnostics row; the microphone detector is switched on.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hört auf Mikrofonaktivität"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening for microphone input"
           }
         }
       }
@@ -839,6 +876,42 @@
         }
       }
     },
+    "Not listening for microphone input" : {
+      "comment" : "Menu diagnostics row; the microphone detector is switched off.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Hört nicht auf Mikrofonaktivität"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not listening for microphone input"
+          }
+        }
+      }
+    },
+    "Not reading Microsoft Teams' meeting UI" : {
+      "comment" : "Menu diagnostics row; the Teams detector is switched off.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Liest die Besprechungsoberfläche von Microsoft Teams nicht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not reading Microsoft Teams' meeting UI"
+          }
+        }
+      }
+    },
     "Nothing it detects is uploaded, stored or shared." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -992,6 +1065,24 @@
         }
       }
     },
+    "Reading Microsoft Teams' meeting UI" : {
+      "comment" : "Menu diagnostics row; the Teams detector is switched on.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Liest die Besprechungsoberfläche von Microsoft Teams"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Microsoft Teams' meeting UI"
+          }
+        }
+      }
+    },
     "Reads Teams' own meeting UI. The most accurate signal, and unaffected by muting." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1010,7 +1101,7 @@
       }
     },
     "Recent detections" : {
-      "comment" : "Submenu holding the last few detection log lines, shown in debug mode.",
+      "comment" : "Header over the detection log lines, shown when the menu is opened with ⌥ held.",
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
