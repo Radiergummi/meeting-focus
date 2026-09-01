@@ -38,7 +38,7 @@
 	<key>OSAScriptingDefinition</key>
 	<string>MeetingFocus.sdef</string>
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<string>$(MF_AUTOMATIC_UPDATE_CHECKS)</string>
 	<key>SUFeedURL</key>
 	<string>https://meetingfocus.mazetti.me/appcast.xml</string>
 	<key>SUPublicEDKey</key>

@@ -34,6 +34,17 @@ settings:
     # log it came from. A binary that cannot say where it came from cannot be checked.
     MF_BUILD_COMMIT: local
     MF_BUILD_RUN_URL: ""
+    # Whether Sparkle is allowed to check on its own. Substituted into SUEnableAutomaticChecks
+    # below rather than written there literally, so Debug can turn it off. Sparkle installs into
+    # the *running* bundle, so an automatic check accepted on a local build replaces that build
+    # with the released one — a Developer ID binary standing where an Apple Development one did.
+    # That is a different code requirement, and TCC pins the requirement it granted against, so
+    # the app's Accessibility permission silently stops applying. The menu item still works; only
+    # the unprompted check is off.
+    MF_AUTOMATIC_UPDATE_CHECKS: "YES"
+  configs:
+    Debug:
+      MF_AUTOMATIC_UPDATE_CHECKS: "NO"
 
 targets:
   MeetingFocus:
@@ -96,7 +107,7 @@ targets:
         # Auto-update feed. Repoint this one value to move the appcast.
         SUFeedURL: https://meetingfocus.mazetti.me/appcast.xml
         SUPublicEDKey: PF6+rOJ1fFGZkt/v+OtImnW0UyQvGlRvafdlDWPusOM=
-        SUEnableAutomaticChecks: true
+        SUEnableAutomaticChecks: $(MF_AUTOMATIC_UPDATE_CHECKS)
         MFBuildCommit: $(MF_BUILD_COMMIT)
         MFBuildRunURL: $(MF_BUILD_RUN_URL)
 schemes:
